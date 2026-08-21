@@ -1,0 +1,19 @@
+node_modules
+
+# Carries the Atlas password, the JWT secret and the Cloudinary secret.
+# .env.example is committed with the shape but no values.
+.env
+.env.*
+!.env.example
+
+# Locally-stored uploads — the fallback used before Cloudinary credentials are
+# configured. Customer reference images land here too, so it must never be
+# committed.
+uploads
+
+*.log
+coverage
+
+.vscode
+.idea
+.DS_Store
