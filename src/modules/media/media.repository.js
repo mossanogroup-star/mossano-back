@@ -1,5 +1,9 @@
 import { MediaModel } from "./media.model.js";
-import { escapeRegex, runPagedQuery, softDeleteById } from "../../utils/repositoryHelpers.js";
+import {
+  escapeRegex,
+  runPagedQuery,
+  softDeleteById,
+} from "../../utils/repositoryHelpers.js";
 
 function buildFilter({ kind, search }) {
   const filter = { isDeleted: false };
@@ -37,7 +41,9 @@ const mediaRepository = {
   insertMany: (docs) => MediaModel.insertMany(docs),
 
   update: (id, patch) =>
-    MediaModel.findOneAndUpdate({ _id: id, isDeleted: false }, patch, { new: true }).lean(),
+    MediaModel.findOneAndUpdate({ _id: id, isDeleted: false }, patch, {
+      new: true,
+    }).lean(),
 
   softDelete: (id) => softDeleteById(MediaModel, id),
 

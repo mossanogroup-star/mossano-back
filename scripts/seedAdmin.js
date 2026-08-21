@@ -13,7 +13,11 @@ import { logger } from "../src/config/logger.js";
 import { UserModel, hashPassword } from "../src/modules/user/user.model.js";
 
 async function main() {
-  const { SEED_ADMIN_EMAIL: email, SEED_ADMIN_PASSWORD: password, SEED_ADMIN_NAME: name } = env;
+  const {
+    SEED_ADMIN_EMAIL: email,
+    SEED_ADMIN_PASSWORD: password,
+    SEED_ADMIN_NAME: name,
+  } = env;
 
   if (!email || !password) {
     logger.error("Set SEED_ADMIN_EMAIL and SEED_ADMIN_PASSWORD in .env first.");

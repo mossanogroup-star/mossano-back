@@ -5,7 +5,10 @@ import { asyncHandler } from "../../utils/asyncHandler.js";
 
 const login = asyncHandler(async (req, res) => {
   const session = await authService.login(req.validated.body);
-  return sendSuccess(res, { message: "Signed in", data: toSessionDto(session) });
+  return sendSuccess(res, {
+    message: "Signed in",
+    data: toSessionDto(session),
+  });
 });
 
 const me = asyncHandler(async (req, res) => {
@@ -14,7 +17,10 @@ const me = asyncHandler(async (req, res) => {
 });
 
 const changePassword = asyncHandler(async (req, res) => {
-  const result = await authService.changePassword(req.user.id, req.validated.body);
+  const result = await authService.changePassword(
+    req.user.id,
+    req.validated.body,
+  );
   return sendSuccess(res, { message: "Password updated", data: result });
 });
 

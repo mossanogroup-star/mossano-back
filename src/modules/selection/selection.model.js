@@ -32,7 +32,11 @@ const SelectionNoteSchema = new mongoose.Schema(
 /** Per-stone commentary — why this lot, for this project. */
 const SelectionItemSchema = new mongoose.Schema(
   {
-    stone: { type: mongoose.Schema.Types.ObjectId, ref: "Stone", required: true },
+    stone: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Stone",
+      required: true,
+    },
     note: { type: String, trim: true },
   },
   { _id: false },

@@ -1,15 +1,34 @@
 import { EnquiryModel } from "./enquiry.model.js";
-import { escapeRegex, runPagedQuery, softDeleteById } from "../../utils/repositoryHelpers.js";
+import {
+  escapeRegex,
+  runPagedQuery,
+  softDeleteById,
+} from "../../utils/repositoryHelpers.js";
 
 const POPULATE = [
-  { path: "stone", select: "name slug mossanoCode availability primaryImageUrl" },
+  {
+    path: "stone",
+    select: "name slug mossanoCode availability primaryImageUrl",
+  },
   { path: "edit", select: "title slug status" },
   { path: "selection", select: "title token customerName projectName" },
   { path: "assignedTo", select: "name email" },
-  { path: "sourcing.referenceImages", select: "url thumbnailUrl alt width height" },
+  {
+    path: "sourcing.referenceImages",
+    select: "url thumbnailUrl alt width height",
+  },
 ];
 
-function buildFilter({ status, type, search, assignedTo, stoneId, from, to, includeDeleted }) {
+function buildFilter({
+  status,
+  type,
+  search,
+  assignedTo,
+  stoneId,
+  from,
+  to,
+  includeDeleted,
+}) {
   const filter = {};
   if (!includeDeleted) filter.isDeleted = false;
   if (status?.length) filter.status = { $in: status };
@@ -51,7 +70,10 @@ const enquiryRepository = {
     });
   },
 
-  findById: (id) => EnquiryModel.findOne({ _id: id, isDeleted: false }).populate(POPULATE).lean(),
+  findById: (id) =>
+    EnquiryModel.findOne({ _id: id, isDeleted: false })
+      .populate(POPULATE)
+      .lean(),
 
   create: (data) => EnquiryModel.create(data),
 
@@ -88,7 +110,8 @@ const enquiryRepository = {
       { $project: { _id: 0, type: "$_id", count: 1 } },
     ]),
 
-  countNew: () => EnquiryModel.countDocuments({ isDeleted: false, status: "new" }),
+  countNew: () =>
+    EnquiryModel.countDocuments({ isDeleted: false, status: "new" }),
 
   recent: (limit = 8) =>
     EnquiryModel.find({ isDeleted: false })

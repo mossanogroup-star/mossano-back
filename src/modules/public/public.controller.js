@@ -29,7 +29,10 @@ const config = asyncHandler(async (_req, res) =>
   sendSuccess(res, {
     data: {
       brand,
-      whatsapp: { general: whatsappLink(sourcingMessage()), number: brand.whatsappNumber },
+      whatsapp: {
+        general: whatsappLink(sourcingMessage()),
+        number: brand.whatsappNumber,
+      },
       taxonomies: {
         looks: LOOKS,
         applications: APPLICATIONS,
@@ -49,7 +52,9 @@ const home = asyncHandler(async (_req, res) => {
       featured: data.featured.map(toStoneCardDto),
       isFeaturedFallback: data.isFeaturedFallback,
       currentEdit: data.currentEdit
-        ? toPublicEditDto(data.currentEdit, { stones: data.currentEdit.resolvedStones })
+        ? toPublicEditDto(data.currentEdit, {
+            stones: data.currentEdit.resolvedStones,
+          })
         : null,
       looks: data.looks,
       applications: data.applications,
@@ -58,14 +63,22 @@ const home = asyncHandler(async (_req, res) => {
 });
 
 const shop = asyncHandler(async (req, res) => {
-  const { items, facets, ...meta } = await publicService.shop(req.validated.query);
-  return sendSuccess(res, { data: items.map(toStoneCardDto), meta: { ...meta, facets } });
+  const { items, facets, ...meta } = await publicService.shop(
+    req.validated.query,
+  );
+  return sendSuccess(res, {
+    data: items.map(toStoneCardDto),
+    meta: { ...meta, facets },
+  });
 });
 
 const stone = asyncHandler(async (req, res) => {
-  const { stone: doc, related, appearsIn, projects } = await publicService.stone(
-    req.validated.params.slug,
-  );
+  const {
+    stone: doc,
+    related,
+    appearsIn,
+    projects,
+  } = await publicService.stone(req.validated.params.slug);
   return sendSuccess(res, {
     data: {
       stone: toPublicStoneDto(doc),
@@ -88,7 +101,9 @@ const edits = asyncHandler(async (_req, res) => {
 });
 
 const edit = asyncHandler(async (req, res) => {
-  const { edit: doc, stones } = await publicService.edit(req.validated.params.slug);
+  const { edit: doc, stones } = await publicService.edit(
+    req.validated.params.slug,
+  );
   return sendSuccess(res, { data: toPublicEditDetailDto(doc, stones) });
 });
 
@@ -101,7 +116,10 @@ const look = asyncHandler(async (req, res) => {
     req.validated.params.slug,
     req.validated.query,
   );
-  return sendSuccess(res, { data: items.map(toStoneCardDto), meta: { ...meta, slug, label } });
+  return sendSuccess(res, {
+    data: items.map(toStoneCardDto),
+    meta: { ...meta, slug, label },
+  });
 });
 
 const applications = asyncHandler(async (_req, res) =>
@@ -109,10 +127,11 @@ const applications = asyncHandler(async (_req, res) =>
 );
 
 const application = asyncHandler(async (req, res) => {
-  const { items, projects, slug, label, ...meta } = await publicService.application(
-    req.validated.params.slug,
-    req.validated.query,
-  );
+  const { items, projects, slug, label, ...meta } =
+    await publicService.application(
+      req.validated.params.slug,
+      req.validated.query,
+    );
   return sendSuccess(res, {
     data: {
       projects: projects.map((p) => toPublicApplicationDto(p)),
@@ -123,7 +142,9 @@ const application = asyncHandler(async (req, res) => {
 });
 
 const applicationProject = asyncHandler(async (req, res) => {
-  const { project, stones } = await publicService.applicationProject(req.validated.params.slug);
+  const { project, stones } = await publicService.applicationProject(
+    req.validated.params.slug,
+  );
   return sendSuccess(res, { data: toPublicApplicationDto(project, stones) });
 });
 

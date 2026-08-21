@@ -50,7 +50,10 @@ if (providerName === "local") {
       "and CLOUDINARY_API_SECRET to switch to Cloudinary.",
   );
 } else {
-  logger.info({ provider: providerName, folder: env.CLOUDINARY_FOLDER }, "Media storage ready");
+  logger.info(
+    { provider: providerName, folder: env.CLOUDINARY_FOLDER },
+    "Media storage ready",
+  );
 }
 
 export { storage, providerName as storageProviderName, UPLOAD_ROOT };

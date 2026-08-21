@@ -16,7 +16,10 @@ const changePasswordSchema = makeSchema({
       .string()
       .min(10, "Use at least 10 characters")
       .max(200)
-      .refine((v) => /[a-zA-Z]/.test(v) && /\d/.test(v), "Include at least one letter and one number"),
+      .refine(
+        (v) => /[a-zA-Z]/.test(v) && /\d/.test(v),
+        "Include at least one letter and one number",
+      ),
   }),
 });
 

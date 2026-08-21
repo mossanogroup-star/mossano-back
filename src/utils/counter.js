@@ -51,7 +51,11 @@ async function nextReference(name, prefix, { pad = 4 } = {}) {
  */
 async function ensureCounterAtLeast(name, value) {
   if (!Number.isFinite(value) || value <= 0) return;
-  await CounterModel.updateOne({ _id: name }, { $max: { seq: value } }, { upsert: true });
+  await CounterModel.updateOne(
+    { _id: name },
+    { $max: { seq: value } },
+    { upsert: true },
+  );
 }
 
 export { CounterModel, nextSequence, nextReference, ensureCounterAtLeast };

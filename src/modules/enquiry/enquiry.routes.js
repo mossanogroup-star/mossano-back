@@ -1,6 +1,10 @@
 import { Router } from "express";
 import { authenticate } from "../../middlewares/auth.js";
-import { canRead, canManage, adminOnly } from "../../middlewares/role.middleware.js";
+import {
+  canRead,
+  canManage,
+  adminOnly,
+} from "../../middlewares/role.middleware.js";
 import { validateRequest } from "../../middlewares/validateRequest.js";
 import { enquiryController } from "./enquiry.controller.js";
 import {
@@ -21,10 +25,25 @@ router.use(authenticate);
 
 router.get("/pipeline", canRead, enquiryController.pipeline);
 router.get("/stats", canRead, enquiryController.stats);
-router.get("/", canRead, validateRequest(enquiryListSchema), enquiryController.list);
+router.get(
+  "/",
+  canRead,
+  validateRequest(enquiryListSchema),
+  enquiryController.list,
+);
 
-router.get("/:id", canRead, validateRequest(enquiryGetSchema), enquiryController.get);
-router.patch("/:id", canManage, validateRequest(enquiryUpdateSchema), enquiryController.update);
+router.get(
+  "/:id",
+  canRead,
+  validateRequest(enquiryGetSchema),
+  enquiryController.get,
+);
+router.patch(
+  "/:id",
+  canManage,
+  validateRequest(enquiryUpdateSchema),
+  enquiryController.update,
+);
 router.patch(
   "/:id/status",
   canManage,
@@ -37,8 +56,18 @@ router.patch(
   validateRequest(enquiryAssignSchema),
   enquiryController.assign,
 );
-router.post("/:id/notes", canManage, validateRequest(enquiryNoteSchema), enquiryController.addNote);
+router.post(
+  "/:id/notes",
+  canManage,
+  validateRequest(enquiryNoteSchema),
+  enquiryController.addNote,
+);
 
-router.delete("/:id", adminOnly, validateRequest(enquiryDeleteSchema), enquiryController.remove);
+router.delete(
+  "/:id",
+  adminOnly,
+  validateRequest(enquiryDeleteSchema),
+  enquiryController.remove,
+);
 
 export default router;

@@ -7,11 +7,18 @@ import multer from "multer";
 import { env } from "../config/env.js";
 import { AppError } from "../utils/AppError.js";
 
-const IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp", "image/avif", "image/heic"];
+const IMAGE_TYPES = [
+  "image/jpeg",
+  "image/png",
+  "image/webp",
+  "image/avif",
+  "image/heic",
+];
 const VIDEO_TYPES = ["video/mp4", "video/quicktime", "video/webm"];
 
 function fileFilter(_req, file, cb) {
-  if ([...IMAGE_TYPES, ...VIDEO_TYPES].includes(file.mimetype)) return cb(null, true);
+  if ([...IMAGE_TYPES, ...VIDEO_TYPES].includes(file.mimetype))
+    return cb(null, true);
   cb(
     new AppError(
       `Unsupported file type: ${file.mimetype}. Upload a JPEG, PNG, WebP, HEIC or MP4.`,

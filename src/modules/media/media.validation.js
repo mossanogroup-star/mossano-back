@@ -1,6 +1,9 @@
 import { z } from "zod";
 import { MEDIA_KINDS } from "./media.model.js";
-import { searchSchema, optionalText } from "../../utils/validationPrimitives.js";
+import {
+  searchSchema,
+  optionalText,
+} from "../../utils/validationPrimitives.js";
 import {
   makeSchema,
   idParamSchema,

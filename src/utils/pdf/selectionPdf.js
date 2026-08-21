@@ -42,18 +42,25 @@ async function fetchImage(url, { timeoutMs = 8000 } = {}) {
   try {
     const res = await fetch(url, { signal: controller.signal });
     if (!res.ok) {
-      logger.warn({ url, status: res.status }, "Slab image could not be fetched for the PDF");
+      logger.warn(
+        { url, status: res.status },
+        "Slab image could not be fetched for the PDF",
+      );
       return null;
     }
 
     const buffer = Buffer.from(await res.arrayBuffer());
     const type = res.headers.get("content-type") ?? "";
-    if (type.includes("jpeg") || type.includes("jpg") || type.includes("png")) return buffer;
+    if (type.includes("jpeg") || type.includes("jpg") || type.includes("png"))
+      return buffer;
 
     const { default: sharp } = await import("sharp");
     return await sharp(buffer).jpeg({ quality: 82 }).toBuffer();
   } catch (err) {
-    logger.warn({ err: err.message, url }, "Could not prepare an image for the selection PDF");
+    logger.warn(
+      { err: err.message, url },
+      "Could not prepare an image for the selection PDF",
+    );
     return null;
   } finally {
     clearTimeout(timer);
@@ -69,7 +76,9 @@ async function fetchImage(url, { timeoutMs = 8000 } = {}) {
 function printUrl(media) {
   if (!media) return null;
   return (
-    storage.derive(media.storageKey, media.resourceType ?? "image", { width: 900 }) || media.url
+    storage.derive(media.storageKey, media.resourceType ?? "image", {
+      width: 900,
+    }) || media.url
   );
 }
 
@@ -116,7 +125,11 @@ function drawHeader(doc, selection) {
   doc.text(`Reference: ${selection.reference}`);
 
   if (selection.introduction) {
-    doc.moveDown(1).fillColor(INK).fontSize(10).text(selection.introduction, { width: 430 });
+    doc
+      .moveDown(1)
+      .fillColor(INK)
+      .fontSize(10)
+      .text(selection.introduction, { width: 430 });
   }
 }
 
@@ -134,7 +147,10 @@ function drawStone(doc, stone, imageBuffer, index) {
   let drewImage = false;
   if (imageBuffer) {
     try {
-      doc.image(imageBuffer, PAGE_MARGIN, top, { fit: [imageWidth, 165], align: "center" });
+      doc.image(imageBuffer, PAGE_MARGIN, top, {
+        fit: [imageWidth, 165],
+        align: "center",
+      });
       drewImage = true;
     } catch (err) {
       logger.warn({ err: err.message }, "pdfkit could not decode a slab image");
@@ -150,31 +166,52 @@ function drawStone(doc, stone, imageBuffer, index) {
       .fill()
       .fillColor(MUTED)
       .fontSize(8)
-      .text("Image on request", PAGE_MARGIN, top + 78, { width: imageWidth, align: "center" });
+      .text("Image on request", PAGE_MARGIN, top + 78, {
+        width: imageWidth,
+        align: "center",
+      });
   }
 
   // Positioned explicitly: the image occupies the left column, so the text
   // starts at its own x rather than flowing underneath the picture.
   doc.fillColor(BRASS).fontSize(8);
-  doc.text(`${String(index + 1).padStart(2, "0")}  ·  ${stone.mossanoCode}`, textX, top, {
-    width: textWidth,
-    characterSpacing: 1.2,
-  });
+  doc.text(
+    `${String(index + 1).padStart(2, "0")}  ·  ${stone.mossanoCode}`,
+    textX,
+    top,
+    {
+      width: textWidth,
+      characterSpacing: 1.2,
+    },
+  );
 
-  doc.moveDown(0.4).fillColor(INK).fontSize(15).text(stone.name, textX, doc.y, { width: textWidth });
+  doc
+    .moveDown(0.4)
+    .fillColor(INK)
+    .fontSize(15)
+    .text(stone.name, textX, doc.y, { width: textWidth });
 
   doc.moveDown(0.3).fontSize(9).fillColor(MUTED);
-  doc.text(`${stone.availabilityLabel}${stone.verifiedLabel ? ` · ${stone.verifiedLabel}` : ""}`, {
-    width: textWidth,
-  });
+  doc.text(
+    `${stone.availabilityLabel}${stone.verifiedLabel ? ` · ${stone.verifiedLabel}` : ""}`,
+    {
+      width: textWidth,
+    },
+  );
 
   doc.moveDown(0.7);
   // The same spec block the stone page renders, "On request" included — the
   // DTO already resolved it, so the two cannot disagree.
   for (const spec of stone.specs ?? []) {
     const y = doc.y;
-    doc.fillColor(MUTED).fontSize(8.5).text(spec.label, textX, y, { width: 96 });
-    doc.fillColor(INK).fontSize(8.5).text(spec.value, textX + 100, y, { width: textWidth - 100 });
+    doc
+      .fillColor(MUTED)
+      .fontSize(8.5)
+      .text(spec.label, textX, y, { width: 96 });
+    doc
+      .fillColor(INK)
+      .fontSize(8.5)
+      .text(spec.value, textX + 100, y, { width: textWidth - 100 });
   }
 
   if (note) {
@@ -225,10 +262,16 @@ async function buildSelectionPdf(selection, { whatsappNumber, email } = {}) {
   // Fetched up front and in parallel: doing it inside the draw loop would
   // serialise a dozen network round-trips into the response time.
   const buffers = await Promise.all(
-    items.map((stone) => fetchImage(printUrl(stone.primaryImage) ?? stone.primaryImageUrl)),
+    items.map((stone) =>
+      fetchImage(printUrl(stone.primaryImage) ?? stone.primaryImageUrl),
+    ),
   );
 
-  const doc = new PDFDocument({ size: "A4", margin: PAGE_MARGIN, bufferPages: true });
+  const doc = new PDFDocument({
+    size: "A4",
+    margin: PAGE_MARGIN,
+    bufferPages: true,
+  });
   const chunks = [];
   doc.on("data", (chunk) => chunks.push(chunk));
 
@@ -243,7 +286,10 @@ async function buildSelectionPdf(selection, { whatsappNumber, email } = {}) {
   items.forEach((stone, i) => drawStone(doc, stone, buffers[i], i));
 
   if (!items.length) {
-    doc.fillColor(MUTED).fontSize(10).text("No stones have been added to this selection yet.");
+    doc
+      .fillColor(MUTED)
+      .fontSize(10)
+      .text("No stones have been added to this selection yet.");
   }
 
   // bufferPages defers page flushing, so the footer can be stamped onto every

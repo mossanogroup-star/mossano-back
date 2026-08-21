@@ -3,6 +3,7 @@ import { stoneRepository } from "../stone/stone.repository.js";
 import { nextReference } from "../../utils/counter.js";
 import { AppError } from "../../utils/AppError.js";
 import { logger } from "../../config/logger.js";
+import { notifyEnquiry } from "../../utils/notify/index.js";
 import { ENQUIRY_PIPELINE } from "./enquiry.constants.js";
 
 /**
@@ -23,7 +24,10 @@ async function attachStone(body) {
   // A stale link should not lose the enquiry — the message still matters, and
   // the team can work out which lot it was from what the customer wrote.
   if (!stone) {
-    logger.warn({ stoneSlug: body.stoneSlug, stoneId: body.stoneId }, "Enquiry names an unknown stone");
+    logger.warn(
+      { stoneSlug: body.stoneSlug, stoneId: body.stoneId },
+      "Enquiry names an unknown stone",
+    );
     return {};
   }
 
@@ -62,11 +66,31 @@ const enquiryService = {
     });
 
     logger.info(
-      { reference, type: created.type, stone: created.stoneSnapshot?.mossanoCode },
+      {
+        reference,
+        type: created.type,
+        stone: created.stoneSnapshot?.mossanoCode,
+      },
       "Enquiry received",
     );
 
-    return enquiryRepository.findById(created._id);
+    const enquiry = await enquiryRepository.findById(created._id);
+
+    /**
+     * Alert the team — the client's "Backend automatically → Executive ko
+     * WhatsApp".
+     *
+     * Deliberately not awaited. The customer's confirmation should not wait on
+     * an SMTP handshake or Meta's Graph API, and it must not fail if either is
+     * down: the enquiry is already committed, and losing the lead because a
+     * notification channel hiccuped would invert the priority completely.
+     * notifyEnquiry never throws, but .catch() guards the promise itself.
+     */
+    notifyEnquiry(enquiry).catch((err) =>
+      logger.error({ err, reference }, "Enquiry alert threw unexpectedly"),
+    );
+
+    return enquiry;
   },
 
   /**
@@ -79,7 +103,8 @@ const enquiryService = {
     if (!enquiry) throw new AppError("Enquiry not found", 404);
 
     const patch = { status };
-    if (status !== "new" && !enquiry.firstRespondedAt) patch.firstRespondedAt = new Date();
+    if (status !== "new" && !enquiry.firstRespondedAt)
+      patch.firstRespondedAt = new Date();
 
     return enquiryRepository.findByIdAndSave(id, patch);
   },
@@ -102,7 +127,9 @@ const enquiryService = {
   },
 
   async assign(id, userId) {
-    const updated = await enquiryRepository.findByIdAndSave(id, { assignedTo: userId || null });
+    const updated = await enquiryRepository.findByIdAndSave(id, {
+      assignedTo: userId || null,
+    });
     if (!updated) throw new AppError("Enquiry not found", 404);
     return updated;
   },
@@ -117,7 +144,10 @@ const enquiryService = {
   async pipeline() {
     const counts = await enquiryRepository.countByStatus();
     const byStatus = new Map(counts.map((c) => [c.status, c.count]));
-    return ENQUIRY_PIPELINE.map((status) => ({ status, count: byStatus.get(status) ?? 0 }));
+    return ENQUIRY_PIPELINE.map((status) => ({
+      status,
+      count: byStatus.get(status) ?? 0,
+    }));
   },
 
   stats() {

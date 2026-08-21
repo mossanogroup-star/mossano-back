@@ -19,12 +19,21 @@ const setStatus = asyncHandler(async (req, res) => {
     req.validated.body.status,
     req.user,
   );
-  return sendSuccess(res, { message: "Status updated", data: toEnquiryDto(enquiry) });
+  return sendSuccess(res, {
+    message: "Status updated",
+    data: toEnquiryDto(enquiry),
+  });
 });
 
 const update = asyncHandler(async (req, res) => {
-  const enquiry = await enquiryService.update(req.validated.params.id, req.validated.body);
-  return sendSuccess(res, { message: "Enquiry updated", data: toEnquiryDto(enquiry) });
+  const enquiry = await enquiryService.update(
+    req.validated.params.id,
+    req.validated.body,
+  );
+  return sendSuccess(res, {
+    message: "Enquiry updated",
+    data: toEnquiryDto(enquiry),
+  });
 });
 
 const addNote = asyncHandler(async (req, res) => {
@@ -33,7 +42,10 @@ const addNote = asyncHandler(async (req, res) => {
     req.validated.body.body,
     req.user,
   );
-  return sendSuccess(res, { message: "Note added", data: toEnquiryDto(enquiry) });
+  return sendSuccess(res, {
+    message: "Note added",
+    data: toEnquiryDto(enquiry),
+  });
 });
 
 const assign = asyncHandler(async (req, res) => {
@@ -57,6 +69,16 @@ const stats = asyncHandler(async (_req, res) =>
   sendSuccess(res, { data: await enquiryService.stats() }),
 );
 
-const enquiryController = { list, get, setStatus, update, addNote, assign, remove, pipeline, stats };
+const enquiryController = {
+  list,
+  get,
+  setStatus,
+  update,
+  addNote,
+  assign,
+  remove,
+  pipeline,
+  stats,
+};
 
 export { enquiryController };

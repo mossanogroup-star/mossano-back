@@ -50,7 +50,10 @@ const localProvider = {
     const ext = path.extname(filename || "") || "";
     const base = safeSegment(path.basename(filename || "file", ext)) || "file";
     const storageKey = path
-      .join(safeSegment(folder) || "misc", `${base}-${randomUUID().slice(0, 8)}${ext}`)
+      .join(
+        safeSegment(folder) || "misc",
+        `${base}-${randomUUID().slice(0, 8)}${ext}`,
+      )
       .replace(/\\/g, "/");
 
     await fs.writeFile(path.join(UPLOAD_ROOT, storageKey), buffer);

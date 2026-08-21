@@ -25,10 +25,14 @@ const userService = {
 
     // Losing the last admin would lock the whole team out of the panel, and
     // there is no self-service recovery path in Phase 1.
-    const demoting = patch.role && patch.role !== "admin" && target.role === "admin";
+    const demoting =
+      patch.role && patch.role !== "admin" && target.role === "admin";
     const disabling = patch.isActive === false && target.isActive;
     if ((demoting || disabling) && (await userRepository.countAdmins()) <= 1) {
-      throw new AppError("This is the only active admin — promote someone else first", 400);
+      throw new AppError(
+        "This is the only active admin — promote someone else first",
+        400,
+      );
     }
 
     if (String(id) === String(actor.id) && patch.isActive === false) {
@@ -45,7 +49,10 @@ const userService = {
     const target = await userRepository.findById(id);
     if (!target) throw new AppError("User not found", 404);
     if (target.role === "admin" && (await userRepository.countAdmins()) <= 1) {
-      throw new AppError("This is the only active admin — promote someone else first", 400);
+      throw new AppError(
+        "This is the only active admin — promote someone else first",
+        400,
+      );
     }
     await userRepository.remove(id);
     return { id };

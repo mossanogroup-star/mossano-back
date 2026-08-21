@@ -27,10 +27,13 @@ function resourceTypeFor(mimeType) {
 
 function uploadBuffer(buffer, options) {
   return new Promise((resolve, reject) => {
-    const stream = cloudinary.uploader.upload_stream(options, (error, result) => {
-      if (error) return reject(error);
-      resolve(result);
-    });
+    const stream = cloudinary.uploader.upload_stream(
+      options,
+      (error, result) => {
+        if (error) return reject(error);
+        resolve(result);
+      },
+    );
     stream.end(buffer);
   });
 }
@@ -69,7 +72,11 @@ const cloudinaryProvider = {
    * Build a delivery URL at a given width. This is why one upload is enough:
    * the storefront asks for the size it needs at render time.
    */
-  derive(storageKey, resourceType = "image", { width, height, crop = "limit" } = {}) {
+  derive(
+    storageKey,
+    resourceType = "image",
+    { width, height, crop = "limit" } = {},
+  ) {
     if (!env.CLOUDINARY_CONFIGURED || !storageKey) return null;
     return cloudinary.url(storageKey, {
       resource_type: resourceType,
@@ -83,7 +90,9 @@ const cloudinaryProvider = {
 
   async remove(storageKey, resourceType = "image") {
     if (!storageKey) return;
-    await cloudinary.uploader.destroy(storageKey, { resource_type: resourceType });
+    await cloudinary.uploader.destroy(storageKey, {
+      resource_type: resourceType,
+    });
   },
 };
 

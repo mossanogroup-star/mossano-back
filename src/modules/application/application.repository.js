@@ -1,12 +1,29 @@
 import { ApplicationModel } from "./application.model.js";
-import { escapeRegex, runPagedQuery, softDeleteById } from "../../utils/repositoryHelpers.js";
+import {
+  escapeRegex,
+  runPagedQuery,
+  softDeleteById,
+} from "../../utils/repositoryHelpers.js";
 
 const POPULATE = [
-  { path: "coverImage", select: "url thumbnailUrl storageKey resourceType alt width height" },
-  { path: "images", select: "url thumbnailUrl storageKey resourceType alt caption width height" },
+  {
+    path: "coverImage",
+    select: "url thumbnailUrl storageKey resourceType alt width height",
+  },
+  {
+    path: "images",
+    select: "url thumbnailUrl storageKey resourceType alt caption width height",
+  },
 ];
 
-function buildFilter({ application, search, featured, publishedOnly, includeDeleted, stoneId }) {
+function buildFilter({
+  application,
+  search,
+  featured,
+  publishedOnly,
+  includeDeleted,
+  stoneId,
+}) {
   const filter = {};
   if (!includeDeleted) filter.isDeleted = false;
   if (publishedOnly) filter.isPublished = true;
@@ -16,7 +33,12 @@ function buildFilter({ application, search, featured, publishedOnly, includeDele
 
   if (search?.trim()) {
     const rx = new RegExp(escapeRegex(search.trim()), "i");
-    filter.$or = [{ title: rx }, { projectName: rx }, { location: rx }, { architect: rx }];
+    filter.$or = [
+      { title: rx },
+      { projectName: rx },
+      { location: rx },
+      { architect: rx },
+    ];
   }
   return filter;
 }
@@ -34,7 +56,9 @@ const applicationRepository = {
   },
 
   findById: (id) =>
-    ApplicationModel.findOne({ _id: id, isDeleted: false }).populate(POPULATE).lean(),
+    ApplicationModel.findOne({ _id: id, isDeleted: false })
+      .populate(POPULATE)
+      .lean(),
 
   findBySlug: (slug, { publishedOnly = true } = {}) =>
     ApplicationModel.findOne({
@@ -72,7 +96,13 @@ const applicationRepository = {
   countsByApplication: () =>
     ApplicationModel.aggregate([
       { $match: { isDeleted: false, isPublished: true } },
-      { $group: { _id: "$application", count: { $sum: 1 }, cover: { $first: "$coverImage" } } },
+      {
+        $group: {
+          _id: "$application",
+          count: { $sum: 1 },
+          cover: { $first: "$coverImage" },
+        },
+      },
       { $project: { _id: 0, application: "$_id", count: 1, cover: 1 } },
     ]),
 

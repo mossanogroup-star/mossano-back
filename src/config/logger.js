@@ -14,7 +14,10 @@ const logger = pino({
   level: env.IS_PROD ? "info" : "debug",
   transport: env.IS_PROD
     ? undefined
-    : { target: "pino-pretty", options: { colorize: true, translateTime: "SYS:HH:MM:ss.l" } },
+    : {
+        target: "pino-pretty",
+        options: { colorize: true, translateTime: "SYS:HH:MM:ss.l" },
+      },
   formatters: {
     level(label) {
       return { level: label };

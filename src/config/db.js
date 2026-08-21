@@ -15,7 +15,9 @@ async function connectDb(maxRetries = 5) {
   let attempt = 0;
   while (attempt < maxRetries) {
     try {
-      await mongoose.connect(env.MONGODB_URI, { serverSelectionTimeoutMS: 8000 });
+      await mongoose.connect(env.MONGODB_URI, {
+        serverSelectionTimeoutMS: 8000,
+      });
       logger.info({ db: mongoose.connection.name }, "MongoDB connected");
       return;
     } catch (error) {

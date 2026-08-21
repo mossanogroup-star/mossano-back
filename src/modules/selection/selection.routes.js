@@ -1,6 +1,10 @@
 import { Router } from "express";
 import { authenticate } from "../../middlewares/auth.js";
-import { canRead, canManage, adminOnly } from "../../middlewares/role.middleware.js";
+import {
+  canRead,
+  canManage,
+  adminOnly,
+} from "../../middlewares/role.middleware.js";
 import { validateRequest } from "../../middlewares/validateRequest.js";
 import { selectionController } from "./selection.controller.js";
 import {
@@ -19,11 +23,31 @@ const router = Router();
 // by token. Nothing here is reachable without a signed-in team member.
 router.use(authenticate);
 
-router.get("/", canRead, validateRequest(selectionListSchema), selectionController.list);
-router.post("/", canManage, validateRequest(selectionCreateSchema), selectionController.create);
+router.get(
+  "/",
+  canRead,
+  validateRequest(selectionListSchema),
+  selectionController.list,
+);
+router.post(
+  "/",
+  canManage,
+  validateRequest(selectionCreateSchema),
+  selectionController.create,
+);
 
-router.get("/:id", canRead, validateRequest(selectionGetSchema), selectionController.get);
-router.patch("/:id", canManage, validateRequest(selectionUpdateSchema), selectionController.update);
+router.get(
+  "/:id",
+  canRead,
+  validateRequest(selectionGetSchema),
+  selectionController.get,
+);
+router.patch(
+  "/:id",
+  canManage,
+  validateRequest(selectionUpdateSchema),
+  selectionController.update,
+);
 
 router.post(
   "/:id/revoke",
@@ -50,6 +74,11 @@ router.post(
   selectionController.addNote,
 );
 
-router.delete("/:id", adminOnly, validateRequest(selectionDeleteSchema), selectionController.remove);
+router.delete(
+  "/:id",
+  adminOnly,
+  validateRequest(selectionDeleteSchema),
+  selectionController.remove,
+);
 
 export default router;

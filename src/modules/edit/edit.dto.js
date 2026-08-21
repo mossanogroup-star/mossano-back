@@ -49,7 +49,9 @@ function toAdminEditDto(doc, stones) {
     isPublished: Boolean(doc.isPublished),
     stoneIds: (doc.stones ?? []).map((s) => String(s?._id ?? s)),
     imageIds: (doc.images ?? []).map((m) => String(m?._id ?? m)),
-    coverImageId: doc.coverImage ? String(doc.coverImage?._id ?? doc.coverImage) : null,
+    coverImageId: doc.coverImage
+      ? String(doc.coverImage?._id ?? doc.coverImage)
+      : null,
     createdAt: doc.createdAt,
     updatedAt: doc.updatedAt,
   };

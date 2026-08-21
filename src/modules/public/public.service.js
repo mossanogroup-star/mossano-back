@@ -28,13 +28,24 @@ const publicService = {
    * by Application — the whole page in one pass.
    */
   async home() {
-    const [featured, liveEdits, lookIndex, applicationIndex, newest] = await Promise.all([
-      stoneRepository.findMany({ ...PUBLIC_SCOPE, featured: true, limit: 8, page: 1 }),
-      editService.live(),
-      this.lookIndex(),
-      applicationService.index(),
-      stoneRepository.findMany({ ...PUBLIC_SCOPE, sort: "newest", limit: 8, page: 1 }),
-    ]);
+    const [featured, liveEdits, lookIndex, applicationIndex, newest] =
+      await Promise.all([
+        stoneRepository.findMany({
+          ...PUBLIC_SCOPE,
+          featured: true,
+          limit: 8,
+          page: 1,
+        }),
+        editService.live(),
+        this.lookIndex(),
+        applicationService.index(),
+        stoneRepository.findMany({
+          ...PUBLIC_SCOPE,
+          sort: "newest",
+          limit: 8,
+          page: 1,
+        }),
+      ]);
 
     const currentEdit = liveEdits.find((e) => e.status === "current") ?? null;
 
@@ -42,7 +53,9 @@ const publicService = {
       // Falls back to the newest stock when nothing has been marked featured —
       // an empty "Featured stones" band on the home page is worse than an
       // unlabelled one, and this is the state a fresh catalogue starts in.
-      featured: featured.items.length ? featured.items : newest.items.slice(0, 6),
+      featured: featured.items.length
+        ? featured.items
+        : newest.items.slice(0, 6),
       isFeaturedFallback: featured.items.length === 0,
       currentEdit,
       looks: lookIndex,
@@ -106,11 +119,18 @@ const publicService = {
    */
   async lookIndex() {
     const facets = await stoneRepository.facets();
-    const countBy = new Map((facets.looks ?? []).map((l) => [l.value, l.count]));
+    const countBy = new Map(
+      (facets.looks ?? []).map((l) => [l.value, l.count]),
+    );
 
     const leads = await Promise.all(
       LOOKS.map(({ slug }) =>
-        stoneRepository.findMany({ ...PUBLIC_SCOPE, look: [slug], limit: 1, page: 1 }),
+        stoneRepository.findMany({
+          ...PUBLIC_SCOPE,
+          look: [slug],
+          limit: 1,
+          page: 1,
+        }),
       ),
     );
 
@@ -196,7 +216,9 @@ const publicService = {
     if (!slugs?.length) return [];
 
     const found = await Promise.all(
-      slugs.slice(0, 100).map((slug) => stoneRepository.findBySlug(slug, PUBLIC_SCOPE)),
+      slugs
+        .slice(0, 100)
+        .map((slug) => stoneRepository.findBySlug(slug, PUBLIC_SCOPE)),
     );
     return found.filter(Boolean);
   },

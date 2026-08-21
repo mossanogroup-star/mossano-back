@@ -17,7 +17,12 @@ const router = Router();
 router.use(authenticate);
 
 router.get("/facets", canRead, mediaController.facets);
-router.get("/", canRead, validateRequest(mediaListSchema), mediaController.list);
+router.get(
+  "/",
+  canRead,
+  validateRequest(mediaListSchema),
+  mediaController.list,
+);
 
 // multer runs before validateRequest: on a multipart request req.body does not
 // exist until multer has parsed it, so validating first would see an empty body
@@ -37,8 +42,23 @@ router.post(
   mediaController.uploadMany,
 );
 
-router.get("/:id", canRead, validateRequest(mediaGetSchema), mediaController.get);
-router.patch("/:id", canManage, validateRequest(mediaUpdateSchema), mediaController.update);
-router.delete("/:id", canManage, validateRequest(mediaDeleteSchema), mediaController.remove);
+router.get(
+  "/:id",
+  canRead,
+  validateRequest(mediaGetSchema),
+  mediaController.get,
+);
+router.patch(
+  "/:id",
+  canManage,
+  validateRequest(mediaUpdateSchema),
+  mediaController.update,
+);
+router.delete(
+  "/:id",
+  canManage,
+  validateRequest(mediaDeleteSchema),
+  mediaController.remove,
+);
 
 export default router;

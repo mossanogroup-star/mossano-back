@@ -10,7 +10,10 @@ const summary = asyncHandler(async (_req, res) => {
   return sendSuccess(res, {
     data: {
       ...data,
-      enquiries: { ...data.enquiries, recent: data.enquiries.recent.map(toEnquiryDto) },
+      enquiries: {
+        ...data.enquiries,
+        recent: data.enquiries.recent.map(toEnquiryDto),
+      },
     },
   });
 });

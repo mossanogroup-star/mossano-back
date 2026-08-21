@@ -32,10 +32,14 @@ function toMediaDto(doc) {
     bytes: doc.bytes ?? null,
     createdAt: doc.createdAt,
     srcset: isImage
-      ? SRCSET_WIDTHS.filter((w) => !doc.width || w <= doc.width * 1.2).map((width) => ({
-          width,
-          url: storage.derive(doc.storageKey, doc.resourceType, { width }) || doc.url,
-        }))
+      ? SRCSET_WIDTHS.filter((w) => !doc.width || w <= doc.width * 1.2).map(
+          (width) => ({
+            width,
+            url:
+              storage.derive(doc.storageKey, doc.resourceType, { width }) ||
+              doc.url,
+          }),
+        )
       : [],
   };
 }

@@ -54,7 +54,8 @@ async function createApp() {
       autoLogging: {
         // Asset requests would drown the log; one line per page or API call is
         // what is actually readable.
-        ignore: (req) => req.url.startsWith("/assets/") || req.url.startsWith("/uploads/"),
+        ignore: (req) =>
+          req.url.startsWith("/assets/") || req.url.startsWith("/uploads/"),
       },
       genReqId: (req) => req.id,
       customLogLevel: (_req, res, err) => {

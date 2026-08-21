@@ -10,7 +10,9 @@ const list = asyncHandler(async (req, res) => {
 
 const get = asyncHandler(async (req, res) => {
   const edit = await editService.get(req.validated.params.id);
-  const stones = await editService.resolveStones(edit, { publishedOnly: false });
+  const stones = await editService.resolveStones(edit, {
+    publishedOnly: false,
+  });
   return sendSuccess(res, { data: toAdminEditDto(edit, stones) });
 });
 
@@ -24,8 +26,15 @@ const create = asyncHandler(async (req, res) => {
 });
 
 const update = asyncHandler(async (req, res) => {
-  const edit = await editService.update(req.validated.params.id, req.validated.body, req.user);
-  return sendSuccess(res, { message: "Edit updated", data: toAdminEditDto(edit) });
+  const edit = await editService.update(
+    req.validated.params.id,
+    req.validated.body,
+    req.user,
+  );
+  return sendSuccess(res, {
+    message: "Edit updated",
+    data: toAdminEditDto(edit),
+  });
 });
 
 const setStatus = asyncHandler(async (req, res) => {
@@ -46,13 +55,19 @@ const addStones = asyncHandler(async (req, res) => {
     req.validated.body.stoneIds,
     req.user,
   );
-  return sendSuccess(res, { message: "Stones added", data: toAdminEditDto(edit) });
+  return sendSuccess(res, {
+    message: "Stones added",
+    data: toAdminEditDto(edit),
+  });
 });
 
 const removeStone = asyncHandler(async (req, res) => {
   const { id, stoneId } = req.validated.params;
   const edit = await editService.removeStone(id, stoneId, req.user);
-  return sendSuccess(res, { message: "Stone removed from Edit", data: toAdminEditDto(edit) });
+  return sendSuccess(res, {
+    message: "Stone removed from Edit",
+    data: toAdminEditDto(edit),
+  });
 });
 
 const remove = asyncHandler(async (req, res) => {
@@ -60,6 +75,15 @@ const remove = asyncHandler(async (req, res) => {
   return sendSuccess(res, { message: "Edit removed", data: result });
 });
 
-const editController = { list, get, create, update, setStatus, addStones, removeStone, remove };
+const editController = {
+  list,
+  get,
+  create,
+  update,
+  setStatus,
+  addStones,
+  removeStone,
+  remove,
+};
 
 export { editController };

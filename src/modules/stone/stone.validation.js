@@ -61,9 +61,16 @@ const stoneBodyCreateSchema = z.object({
   areaSqFt: z.number().min(0).max(1_000_000).optional(),
 
   looks: z.array(z.enum(LOOK_SLUGS)).max(6).optional().default([]),
-  applications: z.array(z.enum(APPLICATION_SLUGS)).max(7).optional().default([]),
+  applications: z
+    .array(z.enum(APPLICATION_SLUGS))
+    .max(7)
+    .optional()
+    .default([]),
 
-  availability: z.enum(AVAILABILITY).optional().default("verification_required"),
+  availability: z
+    .enum(AVAILABILITY)
+    .optional()
+    .default("verification_required"),
   description: optionalText(4000),
 
   imageIds: z.array(objectIdSchema).max(60).optional(),
@@ -105,7 +112,10 @@ const stoneAdminListSchema = makeSchema({
 const stoneCreateSchema = makeSchema({ body: stoneBodyCreateSchema });
 const stoneGetSchema = makeSchema({ params: idParamSchema });
 const stoneGetBySlugSchema = makeSchema({ params: slugParamSchema });
-const stoneUpdateSchema = makeSchema({ params: idParamSchema, body: stoneBodyUpdateSchema });
+const stoneUpdateSchema = makeSchema({
+  params: idParamSchema,
+  body: stoneBodyUpdateSchema,
+});
 const stoneDeleteSchema = makeSchema({ params: idParamSchema });
 
 /** Admin Scope §2 — the one edit the team makes from a list row, not a form. */

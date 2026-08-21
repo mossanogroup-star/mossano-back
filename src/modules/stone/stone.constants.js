@@ -108,7 +108,8 @@ const MATERIAL_SLUGS = slugsOf(MATERIALS);
 const COLOUR_SLUGS = slugsOf(COLOURS);
 const FINISH_SLUGS = slugsOf(FINISHES);
 
-const labelOf = (list, slug) => list.find((x) => x.slug === slug)?.label ?? null;
+const labelOf = (list, slug) =>
+  list.find((x) => x.slug === slug)?.label ?? null;
 
 export {
   AVAILABILITY,

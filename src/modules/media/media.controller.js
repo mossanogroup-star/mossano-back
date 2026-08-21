@@ -16,7 +16,11 @@ const get = asyncHandler(async (req, res) => {
 
 const uploadOne = asyncHandler(async (req, res) => {
   if (!req.file) throw new AppError("No file was uploaded", 400);
-  const media = await mediaService.uploadOne(req.file, req.validated.body, req.user);
+  const media = await mediaService.uploadOne(
+    req.file,
+    req.validated.body,
+    req.user,
+  );
   return sendSuccess(res, {
     statusCode: 201,
     message: "Uploaded",
@@ -39,7 +43,10 @@ const uploadMany = asyncHandler(async (req, res) => {
 });
 
 const update = asyncHandler(async (req, res) => {
-  const media = await mediaService.update(req.validated.params.id, req.validated.body);
+  const media = await mediaService.update(
+    req.validated.params.id,
+    req.validated.body,
+  );
   return sendSuccess(res, { message: "Updated", data: toMediaDto(media) });
 });
 
@@ -52,6 +59,14 @@ const facets = asyncHandler(async (_req, res) =>
   sendSuccess(res, { data: { kinds: await mediaService.facets() } }),
 );
 
-const mediaController = { list, get, uploadOne, uploadMany, update, remove, facets };
+const mediaController = {
+  list,
+  get,
+  uploadOne,
+  uploadMany,
+  update,
+  remove,
+  facets,
+};
 
 export { mediaController };

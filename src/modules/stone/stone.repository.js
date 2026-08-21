@@ -1,12 +1,25 @@
 import { StoneModel } from "./stone.model.js";
-import { escapeRegex, runPagedQuery, softDeleteById } from "../../utils/repositoryHelpers.js";
+import {
+  escapeRegex,
+  runPagedQuery,
+  softDeleteById,
+} from "../../utils/repositoryHelpers.js";
 
 const POPULATE = [
-  { path: "images", select: "url thumbnailUrl storageKey resourceType alt caption width height mimeType kind" },
-  { path: "videos", select: "url thumbnailUrl storageKey resourceType alt caption mimeType kind" },
+  {
+    path: "images",
+    select:
+      "url thumbnailUrl storageKey resourceType alt caption width height mimeType kind",
+  },
+  {
+    path: "videos",
+    select:
+      "url thumbnailUrl storageKey resourceType alt caption mimeType kind",
+  },
   {
     path: "slabs.image",
-    select: "url thumbnailUrl storageKey resourceType alt width height mimeType kind",
+    select:
+      "url thumbnailUrl storageKey resourceType alt width height mimeType kind",
   },
 ];
 
@@ -64,7 +77,12 @@ function buildFilter({
     // A regex $or rather than $text: customers search partial codes ("MM-02")
     // and partial lot numbers, and $text only matches whole tokens.
     const rx = new RegExp(escapeRegex(search.trim()), "i");
-    filter.$or = [{ name: rx }, { mossanoCode: rx }, { lotNumber: rx }, { origin: rx }];
+    filter.$or = [
+      { name: rx },
+      { mossanoCode: rx },
+      { lotNumber: rx },
+      { origin: rx },
+    ];
   }
 
   return filter;
@@ -83,7 +101,10 @@ const stoneRepository = {
   },
 
   findById: (id, { includeDeleted = false } = {}) =>
-    StoneModel.findOne({ _id: id, ...(includeDeleted ? {} : { isDeleted: false }) })
+    StoneModel.findOne({
+      _id: id,
+      ...(includeDeleted ? {} : { isDeleted: false }),
+    })
       .populate(POPULATE)
       .lean(),
 
@@ -98,7 +119,10 @@ const stoneRepository = {
       .lean(),
 
   findByCode: (mossanoCode) =>
-    StoneModel.findOne({ mossanoCode: String(mossanoCode).toUpperCase(), isDeleted: false })
+    StoneModel.findOne({
+      mossanoCode: String(mossanoCode).toUpperCase(),
+      isDeleted: false,
+    })
       .populate(POPULATE)
       .lean(),
 
@@ -171,7 +195,15 @@ const stoneRepository = {
       { $project: { _id: 0, value: "$_id", count: 1 } },
     ];
 
-    const [material, colour, finish, availability, looks, applications, origin] = await Promise.all([
+    const [
+      material,
+      colour,
+      finish,
+      availability,
+      looks,
+      applications,
+      origin,
+    ] = await Promise.all([
       StoneModel.aggregate(countBy("material")),
       StoneModel.aggregate(countBy("colour")),
       StoneModel.aggregate(countBy("finish")),
@@ -181,7 +213,15 @@ const stoneRepository = {
       StoneModel.aggregate(countBy("origin")),
     ]);
 
-    return { material, colour, finish, availability, looks, applications, origin };
+    return {
+      material,
+      colour,
+      finish,
+      availability,
+      looks,
+      applications,
+      origin,
+    };
   },
 
   /** Admin dashboard: lots whose availability claim has gone stale. */

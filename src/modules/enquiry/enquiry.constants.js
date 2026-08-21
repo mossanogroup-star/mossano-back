@@ -15,6 +15,7 @@ const ENQUIRY_TYPES = [
   "prebook", // Next Edit (Website §2)
   "register_interest", // Upcoming Edit (Website §2)
   "selection", // raised from inside a private selection (Website §9)
+  "chatbot", // the scripted assistant (Website Notes, second drop)
 ];
 
 const ENQUIRY_TYPE_LABELS = {
@@ -26,6 +27,7 @@ const ENQUIRY_TYPE_LABELS = {
   prebook: "Pre-book",
   register_interest: "Register interest",
   selection: "From a private selection",
+  chatbot: "Chatbot",
 };
 
 /**
@@ -35,7 +37,14 @@ const ENQUIRY_TYPE_LABELS = {
  * Without it a lead that went nowhere has no resting place and sits in the
  * inbox forever, which is how a team stops trusting the inbox.
  */
-const ENQUIRY_STATUSES = ["new", "contacted", "interested", "reserved", "purchased", "closed"];
+const ENQUIRY_STATUSES = [
+  "new",
+  "contacted",
+  "interested",
+  "reserved",
+  "purchased",
+  "closed",
+];
 
 const ENQUIRY_STATUS_LABELS = {
   new: "New",
@@ -47,14 +56,26 @@ const ENQUIRY_STATUS_LABELS = {
 };
 
 /** The pipeline as the admin renders it, in order. `closed` sits outside it. */
-const ENQUIRY_PIPELINE = ["new", "contacted", "interested", "reserved", "purchased"];
+const ENQUIRY_PIPELINE = [
+  "new",
+  "contacted",
+  "interested",
+  "reserved",
+  "purchased",
+];
 
 /**
  * Which types are urgent. A reservation request against a lot that may sell
  * this afternoon is not the same as a general "tell me more", and the admin
  * dashboard sorts on this.
  */
-const HIGH_INTENT_TYPES = ["reserve", "prebook", "selection", "sourcing"];
+const HIGH_INTENT_TYPES = [
+  "reserve",
+  "prebook",
+  "selection",
+  "sourcing",
+  "chatbot",
+];
 
 export {
   ENQUIRY_TYPES,

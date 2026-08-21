@@ -25,14 +25,20 @@ async function runPagedQuery({
   select,
 }) {
   const safePage = Math.max(1, Number(page) || 1);
-  const safeLimit = Math.min(MAX_LIMIT, Math.max(1, Number(limit) || DEFAULT_LIMIT));
+  const safeLimit = Math.min(
+    MAX_LIMIT,
+    Math.max(1, Number(limit) || DEFAULT_LIMIT),
+  );
   const skip = (safePage - 1) * safeLimit;
 
   let query = model.find(filter).sort(sort).skip(skip).limit(safeLimit);
   if (select) query = query.select(select);
   if (populate) query = query.populate(populate);
 
-  const [items, total] = await Promise.all([query.lean(), model.countDocuments(filter)]);
+  const [items, total] = await Promise.all([
+    query.lean(),
+    model.countDocuments(filter),
+  ]);
 
   return {
     items,
@@ -69,4 +75,11 @@ async function restoreById(model, id) {
     .lean();
 }
 
-export { escapeRegex, runPagedQuery, softDeleteById, restoreById, DEFAULT_LIMIT, MAX_LIMIT };
+export {
+  escapeRegex,
+  runPagedQuery,
+  softDeleteById,
+  restoreById,
+  DEFAULT_LIMIT,
+  MAX_LIMIT,
+};

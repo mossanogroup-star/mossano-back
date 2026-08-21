@@ -56,11 +56,24 @@ const StoneSchema = new mongoose.Schema(
      * the service on create and never reused, so a code always resolves to the
      * same lot even after the lot is sold.
      */
-    mossanoCode: { type: String, trim: true, uppercase: true, unique: true, index: true },
+    mossanoCode: {
+      type: String,
+      trim: true,
+      uppercase: true,
+      unique: true,
+      index: true,
+    },
 
     name: { type: String, required: true, trim: true, index: true },
     /** URL slug. Derived from the name on create, then frozen — changing it breaks shared links. */
-    slug: { type: String, required: true, trim: true, lowercase: true, unique: true, index: true },
+    slug: {
+      type: String,
+      required: true,
+      trim: true,
+      lowercase: true,
+      unique: true,
+      index: true,
+    },
 
     /** The supplier's lot number, as printed in the catalogues. Not ours. */
     lotNumber: { type: String, trim: true, index: true },
@@ -82,7 +95,12 @@ const StoneSchema = new mongoose.Schema(
     areaSqFt: { type: Number, min: 0 },
 
     looks: { type: [String], enum: LOOK_SLUGS, default: [], index: true },
-    applications: { type: [String], enum: APPLICATION_SLUGS, default: [], index: true },
+    applications: {
+      type: [String],
+      enum: APPLICATION_SLUGS,
+      default: [],
+      index: true,
+    },
 
     /**
      * Admin Scope §2. Defaults to verification_required rather than available:
@@ -140,9 +158,19 @@ const StoneSchema = new mongoose.Schema(
 );
 
 // The Stone Shop's search box hits name, code and lot number together.
-StoneSchema.index({ name: "text", mossanoCode: "text", lotNumber: "text", origin: "text" });
+StoneSchema.index({
+  name: "text",
+  mossanoCode: "text",
+  lotNumber: "text",
+  origin: "text",
+});
 // The catalogue's default ordering: available first, newest within that.
-StoneSchema.index({ isDeleted: 1, isPublished: 1, availabilityRank: 1, createdAt: -1 });
+StoneSchema.index({
+  isDeleted: 1,
+  isPublished: 1,
+  availabilityRank: 1,
+  createdAt: -1,
+});
 
 const StoneModel = mongoose.model("Stone", StoneSchema);
 

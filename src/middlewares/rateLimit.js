@@ -62,7 +62,8 @@ const loginRateLimit = createRateLimit({
 const publicFormRateLimit = createRateLimit({
   windowMs: 10 * 60 * 1000,
   max: 12,
-  message: "That is a lot of enquiries in a short time. Please try again in a few minutes.",
+  message:
+    "That is a lot of enquiries in a short time. Please try again in a few minutes.",
 });
 
 export { createRateLimit, loginRateLimit, publicFormRateLimit };

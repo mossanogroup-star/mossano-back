@@ -5,7 +5,10 @@ import { asyncHandler } from "../../utils/asyncHandler.js";
 
 const list = asyncHandler(async (req, res) => {
   const { items, ...meta } = await applicationService.list(req.validated.query);
-  return sendSuccess(res, { data: items.map((a) => toAdminApplicationDto(a)), meta });
+  return sendSuccess(res, {
+    data: items.map((a) => toAdminApplicationDto(a)),
+    meta,
+  });
 });
 
 const index = asyncHandler(async (_req, res) =>
@@ -14,12 +17,17 @@ const index = asyncHandler(async (_req, res) =>
 
 const get = asyncHandler(async (req, res) => {
   const application = await applicationService.get(req.validated.params.id);
-  const stones = await applicationService.resolveStones(application, { publishedOnly: false });
+  const stones = await applicationService.resolveStones(application, {
+    publishedOnly: false,
+  });
   return sendSuccess(res, { data: toAdminApplicationDto(application, stones) });
 });
 
 const create = asyncHandler(async (req, res) => {
-  const application = await applicationService.create(req.validated.body, req.user);
+  const application = await applicationService.create(
+    req.validated.body,
+    req.user,
+  );
   return sendSuccess(res, {
     statusCode: 201,
     message: `${application.title} added`,
@@ -33,7 +41,10 @@ const update = asyncHandler(async (req, res) => {
     req.validated.body,
     req.user,
   );
-  return sendSuccess(res, { message: "Updated", data: toAdminApplicationDto(application) });
+  return sendSuccess(res, {
+    message: "Updated",
+    data: toAdminApplicationDto(application),
+  });
 });
 
 const remove = asyncHandler(async (req, res) => {

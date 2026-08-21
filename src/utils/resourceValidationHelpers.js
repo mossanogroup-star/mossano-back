@@ -20,7 +20,9 @@ const idParamSchema = z.object({ id: objectIdSchema });
 const slugParamSchema = z.object({ slug: z.string().trim().min(1).max(160) });
 
 /** Private-selection links are addressed by an unguessable token. */
-const tokenParamSchema = z.object({ token: z.string().trim().min(16).max(120) });
+const tokenParamSchema = z.object({
+  token: z.string().trim().min(16).max(120),
+});
 
 function makeSchema({ body, params, query } = {}) {
   return z.object({
@@ -50,7 +52,10 @@ function stripDefault(field) {
       current = current.def.innerType;
       continue;
     }
-    if (current instanceof z.ZodOptional && current.def.innerType instanceof z.ZodDefault) {
+    if (
+      current instanceof z.ZodOptional &&
+      current.def.innerType instanceof z.ZodDefault
+    ) {
       current = current.def.innerType.def.innerType.optional();
       continue;
     }

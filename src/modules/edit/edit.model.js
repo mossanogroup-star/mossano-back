@@ -40,9 +40,21 @@ const EditSchema = new mongoose.Schema(
   {
     /** The customer-facing name: "August 2026". */
     title: { type: String, required: true, trim: true },
-    slug: { type: String, required: true, trim: true, lowercase: true, unique: true, index: true },
+    slug: {
+      type: String,
+      required: true,
+      trim: true,
+      lowercase: true,
+      unique: true,
+      index: true,
+    },
 
-    status: { type: String, enum: EDIT_STATUSES, default: "upcoming", index: true },
+    status: {
+      type: String,
+      enum: EDIT_STATUSES,
+      default: "upcoming",
+      index: true,
+    },
 
     /**
      * The month the Edit represents, stored as a real date so Edits sort

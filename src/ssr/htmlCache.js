@@ -62,18 +62,25 @@ const htmlCache = {
           .then((fresh) => {
             store.set(key, { ...fresh, renderedAt: Date.now() });
           })
-          .catch((err) => logger.warn({ err, key }, "Background SSR refresh failed"))
+          .catch((err) =>
+            logger.warn({ err, key }, "Background SSR refresh failed"),
+          )
           .finally(() => inFlight.delete(key));
         inFlight.set(key, task);
       }
-      return { html: hit.html, status: hit.status, cache: isStale ? "stale" : "hit" };
+      return {
+        html: hit.html,
+        status: hit.status,
+        cache: isStale ? "stale" : "hit",
+      };
     }
 
     // Cold key: collapse concurrent requests onto a single render.
     if (inFlight.has(key)) {
       await inFlight.get(key);
       const filled = store.get(key);
-      if (filled) return { html: filled.html, status: filled.status, cache: "hit" };
+      if (filled)
+        return { html: filled.html, status: filled.status, cache: "hit" };
     }
 
     const task = render()
@@ -100,7 +107,8 @@ const htmlCache = {
     for (const path of list) {
       if (store.delete(path)) dropped += 1;
     }
-    if (dropped) logger.debug({ paths: list, dropped }, "SSR cache invalidated");
+    if (dropped)
+      logger.debug({ paths: list, dropped }, "SSR cache invalidated");
     return dropped;
   },
 
@@ -120,7 +128,11 @@ const htmlCache = {
     store.clear();
   },
 
-  stats: () => ({ entries: store.size, inFlight: inFlight.size, ttlMs: TTL_MS }),
+  stats: () => ({
+    entries: store.size,
+    inFlight: inFlight.size,
+    ttlMs: TTL_MS,
+  }),
 };
 
 export { htmlCache };

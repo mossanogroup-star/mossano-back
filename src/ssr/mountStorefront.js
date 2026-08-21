@@ -68,7 +68,10 @@ async function mountStorefront(app) {
         "Storefront build output is missing. Run `npm run build` in mossano-front.",
       );
       app.use((_req, res) =>
-        res.status(503).type("html").send(placeholderPage("No build output found.")),
+        res
+          .status(503)
+          .type("html")
+          .send(placeholderPage("No build output found.")),
       );
       return;
     }
@@ -80,12 +83,16 @@ async function mountStorefront(app) {
         index: false,
         maxAge: "1y",
         setHeaders: (res, filePath) => {
-          if (filePath.endsWith(".html")) res.setHeader("Cache-Control", "no-cache");
+          if (filePath.endsWith(".html"))
+            res.setHeader("Cache-Control", "no-cache");
         },
       }),
     );
 
-    const template = fs.readFileSync(path.join(CLIENT_DIST, "index.html"), "utf8");
+    const template = fs.readFileSync(
+      path.join(CLIENT_DIST, "index.html"),
+      "utf8",
+    );
 
     // pathToFileURL, not the raw path: Node's ESM loader rejects a Windows
     // absolute path outright — "D:\..." is read as a URL with the scheme "d:".
@@ -105,10 +112,15 @@ async function mountStorefront(app) {
     app.use(viteServer.middlewares);
 
     render = async (url, ctx) => {
-      const raw = fs.readFileSync(path.join(env.FRONTEND_DIR, "index.html"), "utf8");
+      const raw = fs.readFileSync(
+        path.join(env.FRONTEND_DIR, "index.html"),
+        "utf8",
+      );
       // Injects the HMR client and rewrites bare module specifiers.
       const template = await viteServer.transformIndexHtml(url, raw);
-      const { render: devRender } = await viteServer.ssrLoadModule("/src/entry-server.tsx");
+      const { render: devRender } = await viteServer.ssrLoadModule(
+        "/src/entry-server.tsx",
+      );
       return devRender({ url, template, ...ctx });
     };
 
@@ -167,7 +179,10 @@ async function mountStorefront(app) {
   });
 
   logger.info(
-    { mode: env.IS_PROD ? "build" : "vite-middleware", frontend: env.FRONTEND_DIR },
+    {
+      mode: env.IS_PROD ? "build" : "vite-middleware",
+      frontend: env.FRONTEND_DIR,
+    },
     "Storefront mounted",
   );
 }

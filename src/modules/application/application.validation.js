@@ -16,7 +16,9 @@ import {
 
 const applicationBodyCreateSchema = z.object({
   title: z.string().trim().min(1, "Give this a title").max(160),
-  application: z.enum(APPLICATION_SLUGS, { message: "Choose an application category" }),
+  application: z.enum(APPLICATION_SLUGS, {
+    message: "Choose an application category",
+  }),
   projectName: optionalText(160),
   location: optionalText(160),
   architect: optionalText(160),
@@ -40,7 +42,9 @@ const applicationListSchema = makeSchema({
   }),
 });
 
-const applicationCreateSchema = makeSchema({ body: applicationBodyCreateSchema });
+const applicationCreateSchema = makeSchema({
+  body: applicationBodyCreateSchema,
+});
 const applicationGetSchema = makeSchema({ params: idParamSchema });
 const applicationUpdateSchema = makeSchema({
   params: idParamSchema,

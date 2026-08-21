@@ -1,12 +1,28 @@
 import { EditModel } from "./edit.model.js";
-import { escapeRegex, runPagedQuery, softDeleteById } from "../../utils/repositoryHelpers.js";
+import {
+  escapeRegex,
+  runPagedQuery,
+  softDeleteById,
+} from "../../utils/repositoryHelpers.js";
 
 const POPULATE = [
-  { path: "coverImage", select: "url thumbnailUrl storageKey resourceType alt width height" },
-  { path: "images", select: "url thumbnailUrl storageKey resourceType alt width height" },
+  {
+    path: "coverImage",
+    select: "url thumbnailUrl storageKey resourceType alt width height",
+  },
+  {
+    path: "images",
+    select: "url thumbnailUrl storageKey resourceType alt width height",
+  },
 ];
 
-function buildFilter({ status, search, publishedOnly, includeArchived, includeDeleted }) {
+function buildFilter({
+  status,
+  search,
+  publishedOnly,
+  includeArchived,
+  includeDeleted,
+}) {
   const filter = {};
   if (!includeDeleted) filter.isDeleted = false;
   if (publishedOnly) filter.isPublished = true;
@@ -32,7 +48,8 @@ const editRepository = {
     });
   },
 
-  findById: (id) => EditModel.findOne({ _id: id, isDeleted: false }).populate(POPULATE).lean(),
+  findById: (id) =>
+    EditModel.findOne({ _id: id, isDeleted: false }).populate(POPULATE).lean(),
 
   findBySlug: (slug, { publishedOnly = true } = {}) =>
     EditModel.findOne({
@@ -76,18 +93,26 @@ const editRepository = {
    */
   demoteOthersWithStatus: (status, exceptId) =>
     EditModel.updateMany(
-      { status, isDeleted: false, ...(exceptId ? { _id: { $ne: exceptId } } : {}) },
+      {
+        status,
+        isDeleted: false,
+        ...(exceptId ? { _id: { $ne: exceptId } } : {}),
+      },
       { $set: { status: "archived" } },
     ),
 
   /** Every Edit a stone belongs to — used when a stone is deleted. */
   findContainingStone: (stoneId) =>
-    EditModel.find({ stones: stoneId, isDeleted: false }).select("title slug status").lean(),
+    EditModel.find({ stones: stoneId, isDeleted: false })
+      .select("title slug status")
+      .lean(),
 
   softDelete: (id) => softDeleteById(EditModel, id),
 
   allPublishedSlugs: () =>
-    EditModel.find({ isDeleted: false, isPublished: true }).select("slug updatedAt").lean(),
+    EditModel.find({ isDeleted: false, isPublished: true })
+      .select("slug updatedAt")
+      .lean(),
 };
 
 export { editRepository };

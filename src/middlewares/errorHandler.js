@@ -36,7 +36,12 @@ function errorHandler(err, _req, res, _next) {
   // and leaks a stack trace for something as ordinary as bad JSON.
   if (err.type && BODY_PARSER_MESSAGES[err.type]) {
     const status = err.status || err.statusCode || 400;
-    return fail(res, status, HTTP_ERROR_CODES[status] || "BAD_REQUEST", BODY_PARSER_MESSAGES[err.type]);
+    return fail(
+      res,
+      status,
+      HTTP_ERROR_CODES[status] || "BAD_REQUEST",
+      BODY_PARSER_MESSAGES[err.type],
+    );
   }
 
   // Multer: file too large, too many files, unexpected field.
@@ -50,7 +55,12 @@ function errorHandler(err, _req, res, _next) {
 
   // Invalid ObjectId and friends.
   if (err.name === "CastError") {
-    return fail(res, 400, "BAD_REQUEST", `Invalid value for field: ${err.path}`);
+    return fail(
+      res,
+      400,
+      "BAD_REQUEST",
+      `Invalid value for field: ${err.path}`,
+    );
   }
 
   if (err.code === 11000) {
@@ -59,7 +69,10 @@ function errorHandler(err, _req, res, _next) {
   }
 
   if (err.name === "ValidationError") {
-    const details = Object.values(err.errors).map((e) => ({ field: e.path, message: e.message }));
+    const details = Object.values(err.errors).map((e) => ({
+      field: e.path,
+      message: e.message,
+    }));
     return fail(res, 400, "VALIDATION_ERROR", "Validation failed", { details });
   }
 
@@ -70,7 +83,8 @@ function errorHandler(err, _req, res, _next) {
   const isAppError = err instanceof AppError;
   const statusCode = isAppError ? err.statusCode : 500;
   const message = isAppError ? err.message : "Internal server error";
-  const code = (isAppError && err.code) || HTTP_ERROR_CODES[statusCode] || "UNKNOWN_ERROR";
+  const code =
+    (isAppError && err.code) || HTTP_ERROR_CODES[statusCode] || "UNKNOWN_ERROR";
 
   if (statusCode >= 500) {
     logger.error({ err }, "Unhandled server error");

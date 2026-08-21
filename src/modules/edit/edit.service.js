@@ -47,7 +47,9 @@ const editService = {
    * and harder to keep in step with the stone module's own POPULATE list.
    */
   resolveStones(edit, { publishedOnly = true } = {}) {
-    return stoneRepository.findManyByIdsOrdered(edit.stones ?? [], { publishedOnly });
+    return stoneRepository.findManyByIdsOrdered(edit.stones ?? [], {
+      publishedOnly,
+    });
   },
 
   /** The three live bands, each with its stones, ready for Website §2. */
@@ -68,9 +70,14 @@ const editService = {
 
   async create(body, user) {
     const patch = buildPatch(body);
-    patch.slug = await uniqueSlug(body.title, (s) => editRepository.slugExists(s));
+    patch.slug = await uniqueSlug(body.title, (s) =>
+      editRepository.slugExists(s),
+    );
 
-    const created = await editRepository.create({ ...patch, createdBy: user?.id });
+    const created = await editRepository.create({
+      ...patch,
+      createdBy: user?.id,
+    });
 
     if (EXCLUSIVE_STATUSES.includes(created.status)) {
       await editRepository.demoteOthersWithStatus(created.status, created._id);
@@ -85,7 +92,10 @@ const editService = {
     // does not silently move it.
     delete patch.slug;
 
-    const updated = await editRepository.findByIdAndSave(id, { ...patch, updatedBy: user?.id });
+    const updated = await editRepository.findByIdAndSave(id, {
+      ...patch,
+      updatedBy: user?.id,
+    });
     if (!updated) throw new AppError("Edit not found", 404);
 
     if (patch.status && EXCLUSIVE_STATUSES.includes(patch.status)) {
@@ -102,7 +112,8 @@ const editService = {
    * leaves the site briefly showing two Current Edits or none.
    */
   async setStatus(id, status, user) {
-    if (!EDIT_STATUSES.includes(status)) throw new AppError("Unknown status", 400);
+    if (!EDIT_STATUSES.includes(status))
+      throw new AppError("Unknown status", 400);
 
     const edit = await editRepository.findById(id);
     if (!edit) throw new AppError("Edit not found", 404);
@@ -110,7 +121,10 @@ const editService = {
     if (EXCLUSIVE_STATUSES.includes(status)) {
       await editRepository.demoteOthersWithStatus(status, id);
     }
-    const updated = await editRepository.findByIdAndSave(id, { status, updatedBy: user?.id });
+    const updated = await editRepository.findByIdAndSave(id, {
+      status,
+      updatedBy: user?.id,
+    });
 
     invalidateStorefront();
     return updated;
@@ -122,7 +136,10 @@ const editService = {
     if (!edit) throw new AppError("Edit not found", 404);
 
     const existing = (edit.stones ?? []).map(String);
-    const merged = [...existing, ...stoneIds.map(String).filter((s) => !existing.includes(s))];
+    const merged = [
+      ...existing,
+      ...stoneIds.map(String).filter((s) => !existing.includes(s)),
+    ];
 
     const updated = await editRepository.findByIdAndSave(id, {
       stones: merged,

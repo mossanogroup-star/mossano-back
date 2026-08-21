@@ -60,12 +60,17 @@ const selectionService = {
    */
   async resolveItems(selection) {
     const ids = (selection.items ?? []).map((i) => i.stone);
-    const stones = await stoneRepository.findManyByIdsOrdered(ids, { publishedOnly: false });
+    const stones = await stoneRepository.findManyByIdsOrdered(ids, {
+      publishedOnly: false,
+    });
 
     const noteById = new Map(
       (selection.items ?? []).map((i) => [String(i.stone), i.note ?? null]),
     );
-    return stones.map((stone) => ({ stone, note: noteById.get(String(stone._id)) ?? null }));
+    return stones.map((stone) => ({
+      stone,
+      note: noteById.get(String(stone._id)) ?? null,
+    }));
   },
 
   /**
@@ -80,21 +85,31 @@ const selectionService = {
       // seeing their selection.
       selectionRepository
         .recordView(selection._id)
-        .catch((err) => logger.warn({ err }, "Could not record selection view"));
+        .catch((err) =>
+          logger.warn({ err }, "Could not record selection view"),
+        );
       return selection;
     }
 
     const any = await selectionRepository.findAnyByToken(token);
     if (!any) throw new AppError("This selection link is not valid", 404);
     if (any.isRevoked) {
-      throw new AppError("This selection is no longer being shared. Contact MOSSANO.", 410, {
-        code: "SELECTION_REVOKED",
-      });
+      throw new AppError(
+        "This selection is no longer being shared. Contact MOSSANO.",
+        410,
+        {
+          code: "SELECTION_REVOKED",
+        },
+      );
     }
     if (any.expiresAt && any.expiresAt <= new Date()) {
-      throw new AppError("This selection link has expired. Contact MOSSANO for an updated one.", 410, {
-        code: "SELECTION_EXPIRED",
-      });
+      throw new AppError(
+        "This selection link has expired. Contact MOSSANO for an updated one.",
+        410,
+        {
+          code: "SELECTION_EXPIRED",
+        },
+      );
     }
     throw new AppError("This selection is not available yet", 404);
   },
@@ -113,8 +128,14 @@ const selectionService = {
       );
     }
 
-    const created = await selectionRepository.create({ ...patch, createdBy: user?.id });
-    logger.info({ reference: created.reference, customer: created.customerName }, "Selection created");
+    const created = await selectionRepository.create({
+      ...patch,
+      createdBy: user?.id,
+    });
+    logger.info(
+      { reference: created.reference, customer: created.customerName },
+      "Selection created",
+    );
     return selectionRepository.findById(created._id);
   },
 
@@ -125,7 +146,10 @@ const selectionService = {
     delete patch.token;
     delete patch.reference;
 
-    const updated = await selectionRepository.findByIdAndSave(id, { ...patch, updatedBy: user?.id });
+    const updated = await selectionRepository.findByIdAndSave(id, {
+      ...patch,
+      updatedBy: user?.id,
+    });
     if (!updated) throw new AppError("Selection not found", 404);
     return updated;
   },
@@ -156,7 +180,9 @@ const selectionService = {
       token,
       isRevoked: false,
       expiresAt: env.SELECTION_LINK_TTL_DAYS
-        ? new Date(Date.now() + env.SELECTION_LINK_TTL_DAYS * 24 * 60 * 60 * 1000)
+        ? new Date(
+            Date.now() + env.SELECTION_LINK_TTL_DAYS * 24 * 60 * 60 * 1000,
+          )
         : undefined,
       updatedBy: user?.id,
     });

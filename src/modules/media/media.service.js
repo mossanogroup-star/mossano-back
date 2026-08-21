@@ -82,13 +82,18 @@ const mediaService = {
       try {
         uploaded.push(await this.uploadOne(file, meta, user));
       } catch (err) {
-        logger.warn({ err, filename: file.originalname }, "Media upload failed");
+        logger.warn(
+          { err, filename: file.originalname },
+          "Media upload failed",
+        );
         errors.push({ filename: file.originalname, message: err.message });
       }
     }
 
     if (!uploaded.length) {
-      throw new AppError("None of the files could be uploaded", 400, { details: errors });
+      throw new AppError("None of the files could be uploaded", 400, {
+        details: errors,
+      });
     }
     return { uploaded, errors };
   },
@@ -114,7 +119,10 @@ const mediaService = {
     try {
       await storage.remove(media.storageKey, media.resourceType);
     } catch (err) {
-      logger.warn({ err, storageKey: media.storageKey }, "Media removed from DB but not from storage");
+      logger.warn(
+        { err, storageKey: media.storageKey },
+        "Media removed from DB but not from storage",
+      );
     }
     return { id };
   },

@@ -51,8 +51,16 @@ function toAdminSelectionDto(doc, items) {
     customerPhone: doc.customerPhone ?? null,
     introduction: doc.introduction || "",
 
-    items: (doc.items ?? []).map((i) => ({ stoneId: String(i.stone), note: i.note ?? null })),
-    stones: items ? items.map(({ stone, note }) => ({ ...toPublicStoneDto(stone), selectionNote: note })) : undefined,
+    items: (doc.items ?? []).map((i) => ({
+      stoneId: String(i.stone),
+      note: i.note ?? null,
+    })),
+    stones: items
+      ? items.map(({ stone, note }) => ({
+          ...toPublicStoneDto(stone),
+          selectionNote: note,
+        }))
+      : undefined,
     stoneCount: doc.items?.length ?? 0,
 
     images: (doc.images ?? []).map(toMediaDto).filter(Boolean),

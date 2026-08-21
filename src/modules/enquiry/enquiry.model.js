@@ -61,7 +61,12 @@ const EnquirySchema = new mongoose.Schema(
     /** Human-readable, sequential, and what the team quotes on the phone. */
     reference: { type: String, trim: true, unique: true, index: true },
 
-    type: { type: String, enum: ENQUIRY_TYPES, default: "general", index: true },
+    type: {
+      type: String,
+      enum: ENQUIRY_TYPES,
+      default: "general",
+      index: true,
+    },
 
     // ── Who ──
     name: { type: String, required: true, trim: true },
@@ -84,16 +89,29 @@ const EnquirySchema = new mongoose.Schema(
       name: { type: String, trim: true },
     },
     edit: { type: mongoose.Schema.Types.ObjectId, ref: "Edit" },
-    selection: { type: mongoose.Schema.Types.ObjectId, ref: "Selection", index: true },
+    selection: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Selection",
+      index: true,
+    },
 
     requirement: { type: String, trim: true },
     message: { type: String, trim: true },
     sourcing: { type: SourcingBriefSchema, default: undefined },
 
     // ── Pipeline ──
-    status: { type: String, enum: ENQUIRY_STATUSES, default: "new", index: true },
+    status: {
+      type: String,
+      enum: ENQUIRY_STATUSES,
+      default: "new",
+      index: true,
+    },
     notes: { type: [NoteSchema], default: [] },
-    assignedTo: { type: mongoose.Schema.Types.ObjectId, ref: "User", index: true },
+    assignedTo: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      index: true,
+    },
     /** Set the first time the status leaves "new", for a response-time figure. */
     firstRespondedAt: { type: Date },
 
@@ -109,7 +127,12 @@ const EnquirySchema = new mongoose.Schema(
 );
 
 EnquirySchema.index({ isDeleted: 1, status: 1, createdAt: -1 });
-EnquirySchema.index({ name: "text", company: "text", email: "text", projectName: "text" });
+EnquirySchema.index({
+  name: "text",
+  company: "text",
+  email: "text",
+  projectName: "text",
+});
 
 const EnquiryModel = mongoose.model("Enquiry", EnquirySchema);
 

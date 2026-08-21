@@ -65,7 +65,9 @@ const csvQuerySchema = z
   .transform((v) => {
     if (v === undefined) return undefined;
     const list = Array.isArray(v) ? v : String(v).split(",");
-    const cleaned = [...new Set(list.map((s) => String(s).trim()).filter(Boolean))];
+    const cleaned = [
+      ...new Set(list.map((s) => String(s).trim()).filter(Boolean)),
+    ];
     return cleaned.length ? cleaned : undefined;
   });
 
@@ -87,7 +89,10 @@ const phoneSchema = z
   .trim()
   .min(6, "Enter a contact number")
   .max(24)
-  .refine((v) => v.replace(/\D/g, "").length >= 8, "Enter a valid contact number");
+  .refine(
+    (v) => v.replace(/\D/g, "").length >= 8,
+    "Enter a valid contact number",
+  );
 
 function emailSchema(message = "Enter a valid email address") {
   return z.string().trim().toLowerCase().email(message);

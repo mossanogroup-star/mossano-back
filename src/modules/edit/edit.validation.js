@@ -17,7 +17,11 @@ import {
 } from "../../utils/resourceValidationHelpers.js";
 
 const editBodyCreateSchema = z.object({
-  title: z.string().trim().min(1, "Give the Edit a title, e.g. August 2026").max(120),
+  title: z
+    .string()
+    .trim()
+    .min(1, "Give the Edit a title, e.g. August 2026")
+    .max(120),
   subtitle: optionalText(200),
   description: optionalText(4000),
   status: z.enum(EDIT_STATUSES).optional().default("upcoming"),
@@ -42,7 +46,10 @@ const editListSchema = makeSchema({
 const editCreateSchema = makeSchema({ body: editBodyCreateSchema });
 const editGetSchema = makeSchema({ params: idParamSchema });
 const editGetBySlugSchema = makeSchema({ params: slugParamSchema });
-const editUpdateSchema = makeSchema({ params: idParamSchema, body: editBodyUpdateSchema });
+const editUpdateSchema = makeSchema({
+  params: idParamSchema,
+  body: editBodyUpdateSchema,
+});
 const editDeleteSchema = makeSchema({ params: idParamSchema });
 
 const editStatusSchema = makeSchema({
@@ -52,7 +59,12 @@ const editStatusSchema = makeSchema({
 
 const editAddStonesSchema = makeSchema({
   params: idParamSchema,
-  body: z.object({ stoneIds: z.array(objectIdSchema).min(1, "Choose at least one stone").max(200) }),
+  body: z.object({
+    stoneIds: z
+      .array(objectIdSchema)
+      .min(1, "Choose at least one stone")
+      .max(200),
+  }),
 });
 
 const editRemoveStoneSchema = makeSchema({

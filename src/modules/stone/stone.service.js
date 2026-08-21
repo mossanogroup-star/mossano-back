@@ -34,7 +34,9 @@ function invalidateStorefront() {
  */
 async function nextMossanoCode() {
   const highest = await stoneRepository.highestCode();
-  const existing = highest?.mossanoCode ? Number(highest.mossanoCode.replace(/^MM-/, "")) : 0;
+  const existing = highest?.mossanoCode
+    ? Number(highest.mossanoCode.replace(/^MM-/, ""))
+    : 0;
   await ensureCounterAtLeast(STONE_CODE_COUNTER, existing);
 
   const seq = await nextSequence(STONE_CODE_COUNTER);
@@ -48,7 +50,8 @@ async function nextMossanoCode() {
  * deleted, which renders as a broken image in a grid of photography.
  */
 async function resolvePrimaryImage(imageIds) {
-  if (!imageIds?.length) return { primaryImageUrl: null, primaryImageAlt: null };
+  if (!imageIds?.length)
+    return { primaryImageUrl: null, primaryImageAlt: null };
 
   const media = await mediaRepository.findManyByIds(imageIds);
   if (!media.length) return { primaryImageUrl: null, primaryImageAlt: null };
@@ -56,7 +59,8 @@ async function resolvePrimaryImage(imageIds) {
   const byId = new Map(media.map((m) => [String(m._id), m]));
   for (const id of imageIds) {
     const hit = byId.get(String(id));
-    if (hit) return { primaryImageUrl: hit.url, primaryImageAlt: hit.alt || "" };
+    if (hit)
+      return { primaryImageUrl: hit.url, primaryImageAlt: hit.alt || "" };
   }
   return { primaryImageUrl: null, primaryImageAlt: null };
 }
@@ -112,17 +116,25 @@ const stoneService = {
     // The lot number is the better discriminator than a counter: two lots of
     // Classic Beige become classic-beige-16858 and classic-beige-17391, which
     // stay meaningful in a URL an architect forwards.
-    patch.slug = await uniqueSlug(body.name, (s) => stoneRepository.slugExists(s), {
-      discriminator: body.lotNumber,
-    });
+    patch.slug = await uniqueSlug(
+      body.name,
+      (s) => stoneRepository.slugExists(s),
+      {
+        discriminator: body.lotNumber,
+      },
+    );
     patch.mossanoCode = body.mossanoCode || (await nextMossanoCode());
     Object.assign(patch, await resolvePrimaryImage(patch.images));
 
     if (patch.availabilityRank === undefined) {
-      patch.availabilityRank = AVAILABILITY_RANK[patch.availability || "verification_required"];
+      patch.availabilityRank =
+        AVAILABILITY_RANK[patch.availability || "verification_required"];
     }
 
-    const created = await stoneRepository.create({ ...patch, createdBy: user?.id });
+    const created = await stoneRepository.create({
+      ...patch,
+      createdBy: user?.id,
+    });
     invalidateStorefront();
     return stoneRepository.findById(created._id);
   },
@@ -140,7 +152,10 @@ const stoneService = {
       Object.assign(patch, await resolvePrimaryImage(patch.images));
     }
 
-    const updated = await stoneRepository.findByIdAndSave(id, { ...patch, updatedBy: user?.id });
+    const updated = await stoneRepository.findByIdAndSave(id, {
+      ...patch,
+      updatedBy: user?.id,
+    });
     if (!updated) throw new AppError("Stone not found", 404);
 
     invalidateStorefront();
@@ -220,11 +235,16 @@ const stoneService = {
         })
       : { items: [] };
 
-    return [...byLook.items, ...byColour.items.filter((s) => !seen.has(String(s._id)))].slice(
-      0,
-      limit,
-    );
+    return [
+      ...byLook.items,
+      ...byColour.items.filter((s) => !seen.has(String(s._id))),
+    ].slice(0, limit);
   },
 };
 
-export { stoneService, invalidateStorefront, nextMossanoCode, resolvePrimaryImage };
+export {
+  stoneService,
+  invalidateStorefront,
+  nextMossanoCode,
+  resolvePrimaryImage,
+};

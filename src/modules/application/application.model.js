@@ -23,10 +23,22 @@ import { APPLICATION_SLUGS } from "../stone/stone.constants.js";
 const ApplicationSchema = new mongoose.Schema(
   {
     title: { type: String, required: true, trim: true },
-    slug: { type: String, required: true, trim: true, lowercase: true, unique: true, index: true },
+    slug: {
+      type: String,
+      required: true,
+      trim: true,
+      lowercase: true,
+      unique: true,
+      index: true,
+    },
 
     /** Which of the seven categories this belongs to. */
-    application: { type: String, enum: APPLICATION_SLUGS, required: true, index: true },
+    application: {
+      type: String,
+      enum: APPLICATION_SLUGS,
+      required: true,
+      index: true,
+    },
 
     /** Project context, where the client is willing to name it. */
     projectName: { type: String, trim: true },
@@ -52,7 +64,12 @@ const ApplicationSchema = new mongoose.Schema(
   { timestamps: true },
 );
 
-ApplicationSchema.index({ isDeleted: 1, isPublished: 1, application: 1, createdAt: -1 });
+ApplicationSchema.index({
+  isDeleted: 1,
+  isPublished: 1,
+  application: 1,
+  createdAt: -1,
+});
 
 const ApplicationModel = mongoose.model("Application", ApplicationSchema);
 

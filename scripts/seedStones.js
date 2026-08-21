@@ -63,7 +63,11 @@ async function loadTranscription() {
   // the seed cannot drift from what the file actually exports.
   const url = new URL(`file:///${TRANSCRIPTION.replace(/\\/g, "/")}`);
   const mod = await import(url.href);
-  return { stones: mod.STONES, editIds: mod.NEW_EDIT_IDS, editMonth: mod.EDIT_MONTH };
+  return {
+    stones: mod.STONES,
+    editIds: mod.NEW_EDIT_IDS,
+    editMonth: mod.EDIT_MONTH,
+  };
 }
 
 /**
@@ -91,7 +95,10 @@ async function uploadSlab(relativePath, altText) {
   try {
     buffer = await fs.readFile(absolute);
   } catch {
-    logger.warn({ absolute }, "Slab image missing — stone will seed without photography");
+    logger.warn(
+      { absolute },
+      "Slab image missing — stone will seed without photography",
+    );
     return null;
   }
 
@@ -116,7 +123,9 @@ async function seedStone(raw, index) {
   // Match on the supplier's lot number where there is one — it is the only
   // stable identity in the source material. Names repeat (three lots are all
   // "Classic Beige"), so a name match alone would collapse distinct lots.
-  const match = raw.lot ? { lotNumber: raw.lot } : { name, lotNumber: { $in: [null, undefined] } };
+  const match = raw.lot
+    ? { lotNumber: raw.lot }
+    : { name, lotNumber: { $in: [null, undefined] } };
   const existing = await StoneModel.findOne({ ...match, isDeleted: false });
 
   const media = await uploadSlab(raw.image, `${name} — natural stone slab`);
@@ -160,9 +169,13 @@ async function seedStone(raw, index) {
     return { stone: existing, created: false };
   }
 
-  const slug = await uniqueSlug(name, async (s) => Boolean(await StoneModel.exists({ slug: s })), {
-    discriminator: raw.lot,
-  });
+  const slug = await uniqueSlug(
+    name,
+    async (s) => Boolean(await StoneModel.exists({ slug: s })),
+    {
+      discriminator: raw.lot,
+    },
+  );
   const seq = await nextSequence("stone-code");
 
   const stone = await StoneModel.create({
@@ -181,7 +194,9 @@ async function seedStone(raw, index) {
  * hands, and a seed script should not push a collection live on their behalf.
  */
 async function seedEdit(stonesBySourceId, editIds, editMonth) {
-  const stoneIds = editIds.map((id) => stonesBySourceId.get(id)?._id).filter(Boolean);
+  const stoneIds = editIds
+    .map((id) => stonesBySourceId.get(id)?._id)
+    .filter(Boolean);
   if (!stoneIds.length) return null;
 
   const slug = slugify(editMonth);
@@ -207,9 +222,17 @@ async function seedEdit(stonesBySourceId, editIds, editMonth) {
 async function main() {
   await connectDb();
 
-  const { stones: transcription, editIds, editMonth } = await loadTranscription();
+  const {
+    stones: transcription,
+    editIds,
+    editMonth,
+  } = await loadTranscription();
   logger.info(
-    { count: transcription.length, storage: storageProviderName, reupload: REUPLOAD },
+    {
+      count: transcription.length,
+      storage: storageProviderName,
+      reupload: REUPLOAD,
+    },
     "Seeding catalogue",
   );
 
