@@ -23,11 +23,7 @@ const create = asyncHandler(async (req, res) => {
 });
 
 const update = asyncHandler(async (req, res) => {
-  const user = await userService.update(
-    req.validated.params.id,
-    req.validated.body,
-    req.user,
-  );
+  const user = await userService.update(req.validated.params.id, req.validated.body, req.user);
   return sendSuccess(res, { message: "Updated", data: toUserDto(user) });
 });
 

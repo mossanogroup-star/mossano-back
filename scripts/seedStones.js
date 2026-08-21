@@ -1,26 +1,13 @@
 /**
- * Seeds the catalogue from the transcription in mossano-front/src/data/stones.js.
+ * Seeds the catalogue from mossano-front/src/data/stones.js, uploading each
+ * cropped slab through the storage provider.
  *
- * Those 23 records were read off the client's own catalogue pages — the captions
- * are burnt into the photographs, so the file is a transcription, not a data
- * source. This script moves it into MongoDB, uploads the matching cropped slab
- * through the storage provider, and hands the catalogue over to the admin panel.
+ * Deliberately does not invent origin, finish or thickness (absent from the
+ * catalogues, so the site renders "On request") and does not mark anything
+ * Available — nobody has verified these lots since the PDFs were printed.
  *
- * Two things it deliberately does not do:
- *
- *   - It does not invent origin, finish or thickness. Those appear in none of
- *     the three catalogues, so they stay absent and the site renders
- *     "On request". See docs/CLIENT-QUESTIONS.md.
- *   - It does not mark anything Available. Nobody has verified these lots since
- *     the PDFs were printed, so they seed as `verification_required` and the
- *     team confirms them from the dashboard's verification queue.
- *
- * Idempotent: a stone already seeded (matched on lot number, or on name where
- * there is no lot) is updated, not duplicated. Run it again after adding
- * Cloudinary credentials with `--reupload` to move the imagery across.
- *
- *   node scripts/seedStones.js
- *   node scripts/seedStones.js --reupload
+ * Idempotent, matched on lot number. `--reupload` is how a storage provider
+ * switch is performed.
  */
 import fs from "fs/promises";
 import path from "path";
@@ -71,11 +58,8 @@ async function loadTranscription() {
 }
 
 /**
- * Uploads a cropped slab and records it as Media.
- *
- * Reuses an existing record keyed on the original filename unless --reupload is
- * passed, so re-running after adding Cloudinary credentials is what moves the
- * imagery rather than a manual migration.
+ * Reuses an existing record keyed on filename unless --reupload is passed, so
+ * a provider switch is a re-run rather than a manual migration.
  */
 async function uploadSlab(relativePath, altText) {
   const filename = path.basename(relativePath);
@@ -95,10 +79,7 @@ async function uploadSlab(relativePath, altText) {
   try {
     buffer = await fs.readFile(absolute);
   } catch {
-    logger.warn(
-      { absolute },
-      "Slab image missing — stone will seed without photography",
-    );
+    logger.warn({ absolute }, "Slab image missing — stone will seed without photography");
     return null;
   }
 
@@ -123,9 +104,7 @@ async function seedStone(raw, index) {
   // Match on the supplier's lot number where there is one — it is the only
   // stable identity in the source material. Names repeat (three lots are all
   // "Classic Beige"), so a name match alone would collapse distinct lots.
-  const match = raw.lot
-    ? { lotNumber: raw.lot }
-    : { name, lotNumber: { $in: [null, undefined] } };
+  const match = raw.lot ? { lotNumber: raw.lot } : { name, lotNumber: { $in: [null, undefined] } };
   const existing = await StoneModel.findOne({ ...match, isDeleted: false });
 
   const media = await uploadSlab(raw.image, `${name} — natural stone slab`);
@@ -169,13 +148,9 @@ async function seedStone(raw, index) {
     return { stone: existing, created: false };
   }
 
-  const slug = await uniqueSlug(
-    name,
-    async (s) => Boolean(await StoneModel.exists({ slug: s })),
-    {
-      discriminator: raw.lot,
-    },
-  );
+  const slug = await uniqueSlug(name, async (s) => Boolean(await StoneModel.exists({ slug: s })), {
+    discriminator: raw.lot,
+  });
   const seq = await nextSequence("stone-code");
 
   const stone = await StoneModel.create({
@@ -189,14 +164,11 @@ async function seedStone(raw, index) {
 }
 
 /**
- * The August 2026 Edit, from the hand-picked list in the transcription. It is
- * created as a draft: Admin Scope §3 puts publishing an Edit in the team's
- * hands, and a seed script should not push a collection live on their behalf.
+ * Created as a draft — Admin Scope §3 puts publishing in the team's hands, and
+ * a seed script should not push a collection live for them.
  */
 async function seedEdit(stonesBySourceId, editIds, editMonth) {
-  const stoneIds = editIds
-    .map((id) => stonesBySourceId.get(id)?._id)
-    .filter(Boolean);
+  const stoneIds = editIds.map((id) => stonesBySourceId.get(id)?._id).filter(Boolean);
   if (!stoneIds.length) return null;
 
   const slug = slugify(editMonth);
@@ -222,11 +194,7 @@ async function seedEdit(stonesBySourceId, editIds, editMonth) {
 async function main() {
   await connectDb();
 
-  const {
-    stones: transcription,
-    editIds,
-    editMonth,
-  } = await loadTranscription();
+  const { stones: transcription, editIds, editMonth } = await loadTranscription();
   logger.info(
     {
       count: transcription.length,

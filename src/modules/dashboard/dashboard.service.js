@@ -22,9 +22,7 @@ const VERIFICATION_STALE_DAYS = 14;
 
 const dashboardService = {
   async summary() {
-    const staleBefore = new Date(
-      Date.now() - VERIFICATION_STALE_DAYS * 24 * 60 * 60 * 1000,
-    );
+    const staleBefore = new Date(Date.now() - VERIFICATION_STALE_DAYS * 24 * 60 * 60 * 1000);
 
     const [
       newEnquiries,
@@ -45,8 +43,7 @@ const dashboardService = {
     ]);
 
     const currentEdit =
-      (await editRepository.findLive()).find((e) => e.status === "current") ??
-      null;
+      (await editRepository.findLive()).find((e) => e.status === "current") ?? null;
 
     return {
       enquiries: { new: newEnquiries, pipeline, byType, recent },
@@ -75,9 +72,7 @@ const dashboardService = {
    * claim to stay true.
    */
   async verificationQueue(limit = 25) {
-    const staleBefore = new Date(
-      Date.now() - VERIFICATION_STALE_DAYS * 24 * 60 * 60 * 1000,
-    );
+    const staleBefore = new Date(Date.now() - VERIFICATION_STALE_DAYS * 24 * 60 * 60 * 1000);
 
     const { items } = await stoneRepository.findMany({
       availability: ["verification_required"],
@@ -98,10 +93,7 @@ const dashboardService = {
           s.availability !== "sold" &&
           (!s.lastVerifiedAt || new Date(s.lastVerifiedAt) < staleBefore),
       )
-      .sort(
-        (a, b) =>
-          new Date(a.lastVerifiedAt ?? 0) - new Date(b.lastVerifiedAt ?? 0),
-      );
+      .sort((a, b) => new Date(a.lastVerifiedAt ?? 0) - new Date(b.lastVerifiedAt ?? 0));
 
     return [...items, ...overdue].slice(0, limit);
   },

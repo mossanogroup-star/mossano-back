@@ -1,22 +1,13 @@
 /**
  * @module StoneModel
- * @description A lot of stone. The central entity of the whole system.
+ * @description A lot of stone — the central entity.
  *
- * Admin & Backend Scope §1 is explicit: "the same stone will be uploaded once
- * and can then be used across the website … New Edit → Stone Shop → Stone
- * Detail → Application → Private Selection". Every one of those surfaces reads
- * this document. None of them copies it.
+ * Admin Scope §1: uploaded once, used everywhere. Every surface references
+ * this document and none copies it, which is what makes §2's "changing
+ * availability updates it everywhere" true with no fan-out write.
  *
- * That is also what makes §2 work. Changing `availability` to `sold` updates
- * every surface at once because there is only one place the value lives — no
- * fan-out write, nothing to fall out of step.
- *
- * ── Unknown is a real state ──────────────────────────────────────────────
- * Origin, thickness and finish appear nowhere in the client's catalogues. They
- * are optional here and absent by default, and the storefront renders absent as
- * "On request". An architect specifying 2,800 sq ft will discover an invented
- * origin, and verified availability is the entire proposition. Never default
- * these to a plausible value.
+ * ⚠ Origin, thickness and finish are in none of the client's catalogues. They
+ * are absent by default and render "On request". Never default them.
  */
 import mongoose from "mongoose";
 import {
@@ -29,12 +20,8 @@ import {
 } from "./stone.constants.js";
 
 /**
- * One physical slab within the lot.
- *
- * Website §4 asks for "individual slab images where available" — a customer
- * buying six slabs of Golden Portoro wants to see those six, not a
- * representative photograph. Dimensions are per-slab because a lot is rarely
- * uniform.
+ * One physical slab. Website §4 asks for "individual slab images where
+ * available"; dimensions are per-slab because a lot is rarely uniform.
  */
 const SlabSchema = new mongoose.Schema(
   {
@@ -52,9 +39,7 @@ const StoneSchema = new mongoose.Schema(
   {
     /**
      * Customer-facing and permanent — it appears in every WhatsApp message the
-     * site generates ("I am interested in MM-024 Calacatta Viola"). Assigned by
-     * the service on create and never reused, so a code always resolves to the
-     * same lot even after the lot is sold.
+     * site sends. Assigned on create and never reused.
      */
     mossanoCode: {
       type: String,
@@ -81,12 +66,12 @@ const StoneSchema = new mongoose.Schema(
     material: { type: String, enum: MATERIAL_SLUGS, index: true },
     colour: { type: String, enum: COLOUR_SLUGS, index: true },
 
-    // ── Fields the client's catalogues do not contain. Absent, not guessed. ──
+    // Fields the client's catalogues do not contain. Absent, not guessed.
     origin: { type: String, trim: true, index: true },
     finish: { type: String, enum: FINISH_SLUGS },
     thicknessMm: { type: Number, min: 0 },
 
-    // ── Lot size, decoded from the catalogue captions ──
+    // Lot size, decoded from the catalogue captions
     // "Size- 73*59*94NOS" + "QTY- 2800 SQ FT" = 73in x 59in slabs, 94 of them,
     // 2,800 sq ft in total. See CLIENT-FACTS.md.
     slabLengthIn: { type: Number, min: 0 },
@@ -103,9 +88,8 @@ const StoneSchema = new mongoose.Schema(
     },
 
     /**
-     * Admin Scope §2. Defaults to verification_required rather than available:
-     * a stone that has just been typed in has not been verified by anyone, and
-     * claiming otherwise is the one thing this business cannot afford.
+     * Admin Scope §2. Defaults to verification_required, not available — a
+     * stone just typed in has been verified by nobody.
      */
     availability: {
       type: String,
@@ -114,24 +98,18 @@ const StoneSchema = new mongoose.Schema(
       index: true,
     },
     /**
-     * Derived from `availability` — see AVAILABILITY_RANK. Denormalised so the
-     * default catalogue ordering ("what you can buy today, first") sorts on an
-     * index rather than an aggregation stage. The stone service is its only
-     * writer, alongside the field it derives from.
+     * Derived from `availability` (see AVAILABILITY_RANK), denormalised so the
+     * default ordering sorts on an index rather than an aggregation stage.
+     * The stone service is its only writer.
      */
     availabilityRank: { type: Number, default: 2, index: true },
 
-    /**
-     * Website §2 and §4 want "Availability verified today" as a trust signal.
-     * Set whenever availability is touched, so the site can say how fresh the
-     * claim is rather than asserting it flatly.
-     */
+    /** Website §2/§4's "verified today" signal. Set whenever availability moves. */
     lastVerifiedAt: { type: Date },
 
     description: { type: String, trim: true, default: "" },
 
-    // ── Media. Ordered — Mongo will not preserve insertion order otherwise,
-    // and a slab gallery that reshuffles between page loads reads as broken.
+    // Ordered: a gallery that reshuffles between page loads reads as broken.
     images: [{ type: mongoose.Schema.Types.ObjectId, ref: "Media" }],
     videos: [{ type: mongoose.Schema.Types.ObjectId, ref: "Media" }],
     slabs: { type: [SlabSchema], default: [] },

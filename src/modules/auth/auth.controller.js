@@ -17,10 +17,7 @@ const me = asyncHandler(async (req, res) => {
 });
 
 const changePassword = asyncHandler(async (req, res) => {
-  const result = await authService.changePassword(
-    req.user.id,
-    req.validated.body,
-  );
+  const result = await authService.changePassword(req.user.id, req.validated.body);
   return sendSuccess(res, { message: "Password updated", data: result });
 });
 

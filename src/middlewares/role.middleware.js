@@ -10,9 +10,7 @@ import { AppError } from "../utils/AppError.js";
 function authorizeRoles(...roles) {
   return (req, _res, next) => {
     if (!req.user) {
-      return next(
-        new AppError("Not authenticated", 401, { code: "UNAUTHORIZED" }),
-      );
+      return next(new AppError("Not authenticated", 401, { code: "UNAUTHORIZED" }));
     }
     if (!roles.includes(req.user.role)) {
       return next(

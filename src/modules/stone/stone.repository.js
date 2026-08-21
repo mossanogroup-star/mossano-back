@@ -1,25 +1,18 @@
 import { StoneModel } from "./stone.model.js";
-import {
-  escapeRegex,
-  runPagedQuery,
-  softDeleteById,
-} from "../../utils/repositoryHelpers.js";
+import { escapeRegex, runPagedQuery, softDeleteById } from "../../utils/repositoryHelpers.js";
 
 const POPULATE = [
   {
     path: "images",
-    select:
-      "url thumbnailUrl storageKey resourceType alt caption width height mimeType kind",
+    select: "url thumbnailUrl storageKey resourceType alt caption width height mimeType kind",
   },
   {
     path: "videos",
-    select:
-      "url thumbnailUrl storageKey resourceType alt caption mimeType kind",
+    select: "url thumbnailUrl storageKey resourceType alt caption mimeType kind",
   },
   {
     path: "slabs.image",
-    select:
-      "url thumbnailUrl storageKey resourceType alt width height mimeType kind",
+    select: "url thumbnailUrl storageKey resourceType alt width height mimeType kind",
   },
 ];
 
@@ -77,12 +70,7 @@ function buildFilter({
     // A regex $or rather than $text: customers search partial codes ("MM-02")
     // and partial lot numbers, and $text only matches whole tokens.
     const rx = new RegExp(escapeRegex(search.trim()), "i");
-    filter.$or = [
-      { name: rx },
-      { mossanoCode: rx },
-      { lotNumber: rx },
-      { origin: rx },
-    ];
+    filter.$or = [{ name: rx }, { mossanoCode: rx }, { lotNumber: rx }, { origin: rx }];
   }
 
   return filter;
@@ -195,23 +183,17 @@ const stoneRepository = {
       { $project: { _id: 0, value: "$_id", count: 1 } },
     ];
 
-    const [
-      material,
-      colour,
-      finish,
-      availability,
-      looks,
-      applications,
-      origin,
-    ] = await Promise.all([
-      StoneModel.aggregate(countBy("material")),
-      StoneModel.aggregate(countBy("colour")),
-      StoneModel.aggregate(countBy("finish")),
-      StoneModel.aggregate(countBy("availability")),
-      StoneModel.aggregate(countByArray("looks")),
-      StoneModel.aggregate(countByArray("applications")),
-      StoneModel.aggregate(countBy("origin")),
-    ]);
+    const [material, colour, finish, availability, looks, applications, origin] = await Promise.all(
+      [
+        StoneModel.aggregate(countBy("material")),
+        StoneModel.aggregate(countBy("colour")),
+        StoneModel.aggregate(countBy("finish")),
+        StoneModel.aggregate(countBy("availability")),
+        StoneModel.aggregate(countByArray("looks")),
+        StoneModel.aggregate(countByArray("applications")),
+        StoneModel.aggregate(countBy("origin")),
+      ],
+    );
 
     return {
       material,

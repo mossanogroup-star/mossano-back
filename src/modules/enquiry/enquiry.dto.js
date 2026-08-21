@@ -18,9 +18,7 @@ function toSourcingDto(sourcing) {
     budget: sourcing.budget ?? null,
     projectLocation: sourcing.projectLocation ?? null,
     requiredBy: sourcing.requiredBy ?? null,
-    referenceImages: (sourcing.referenceImages ?? [])
-      .map(toMediaDto)
-      .filter(Boolean),
+    referenceImages: (sourcing.referenceImages ?? []).map(toMediaDto).filter(Boolean),
     wantsMossanoToSelect: Boolean(sourcing.wantsMossanoToSelect),
   };
 }
@@ -54,8 +52,7 @@ function toEnquiryDto(doc) {
           id: String(doc.stone._id ?? doc.stone),
           name: doc.stone.name ?? doc.stoneSnapshot?.name ?? null,
           slug: doc.stone.slug ?? null,
-          mossanoCode:
-            doc.stone.mossanoCode ?? doc.stoneSnapshot?.mossanoCode ?? null,
+          mossanoCode: doc.stone.mossanoCode ?? doc.stoneSnapshot?.mossanoCode ?? null,
           availability: doc.stone.availability ?? null,
           primaryImageUrl: doc.stone.primaryImageUrl ?? null,
         }
@@ -63,9 +60,7 @@ function toEnquiryDto(doc) {
     // Survives the stone being renamed or removed.
     stoneSnapshot: doc.stoneSnapshot?.mossanoCode ? doc.stoneSnapshot : null,
 
-    edit: doc.edit
-      ? { id: String(doc.edit._id ?? doc.edit), title: doc.edit.title ?? null }
-      : null,
+    edit: doc.edit ? { id: String(doc.edit._id ?? doc.edit), title: doc.edit.title ?? null } : null,
     selection: doc.selection
       ? {
           id: String(doc.selection._id ?? doc.selection),

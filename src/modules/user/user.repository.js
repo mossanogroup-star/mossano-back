@@ -6,15 +6,12 @@ const userRepository = {
 
   /** Login path: the hash is select:false, so it has to be asked for. */
   findByEmailWithPassword: (email) =>
-    UserModel.findOne({ email: String(email).toLowerCase().trim() }).select(
-      "+passwordHash",
-    ),
+    UserModel.findOne({ email: String(email).toLowerCase().trim() }).select("+passwordHash"),
 
   /** Change-password path: needs the document, not a lean object, to verify. */
   findByIdWithPassword: (id) => UserModel.findById(id).select("+passwordHash"),
 
-  findByEmail: (email) =>
-    UserModel.findOne({ email: String(email).toLowerCase().trim() }).lean(),
+  findByEmail: (email) => UserModel.findOne({ email: String(email).toLowerCase().trim() }).lean(),
 
   findMany({ page, limit, search }) {
     const filter = {};
@@ -44,11 +41,9 @@ const userRepository = {
     }).lean();
   },
 
-  touchLogin: (id) =>
-    UserModel.updateOne({ _id: id }, { $set: { lastLoginAt: new Date() } }),
+  touchLogin: (id) => UserModel.updateOne({ _id: id }, { $set: { lastLoginAt: new Date() } }),
 
-  countAdmins: () =>
-    UserModel.countDocuments({ role: "admin", isActive: true }),
+  countAdmins: () => UserModel.countDocuments({ role: "admin", isActive: true }),
 
   remove: (id) => UserModel.findByIdAndDelete(id).lean(),
 };

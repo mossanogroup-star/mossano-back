@@ -1,20 +1,10 @@
 /**
- * Object storage for uploaded media.
+ * Object storage. Cloudinary in production; the local-disk provider exists so
+ * a fresh clone works before credentials are configured.
  *
- * Production is **Cloudinary**. A local-disk provider exists so the app works
- * on a fresh clone before credentials are configured.
- *
- * Selection order:
- *   1. STORAGE_PROVIDER when set explicitly ("cloudinary" | "local")
- *   2. "cloudinary" when all three credentials are present
- *   3. "local" otherwise
- *
- * Both providers implement:
- *   upload(buffer, { filename, mimeType, folder })
- *     → { provider, storageKey, resourceType, url, thumbnailUrl,
- *         width, height, bytes, format }
- *   derive(storageKey, resourceType, { width, height, crop }) → url | null
- *   remove(storageKey, resourceType) → Promise<void>
+ *   1. STORAGE_PROVIDER, when set explicitly
+ *   2. cloudinary, when all three credentials are present
+ *   3. local otherwise
  */
 import { env } from "../../config/env.js";
 import { logger } from "../../config/logger.js";
@@ -50,10 +40,19 @@ if (providerName === "local") {
       "and CLOUDINARY_API_SECRET to switch to Cloudinary.",
   );
 } else {
-  logger.info(
-    { provider: providerName, folder: env.CLOUDINARY_FOLDER },
-    "Media storage ready",
-  );
+  logger.info({ provider: providerName, folder: env.CLOUDINARY_FOLDER }, "Media storage ready");
 }
 
-export { storage, providerName as storageProviderName, UPLOAD_ROOT };
+/**
+ * The provider a *record* belongs to, which is not always the active one.
+ *
+ * After a migration the database holds media from both — the Cloudinary copies
+ * in use and the local ones left behind. Removing a local file through the
+ * Cloudinary provider silently does nothing, so anything deleting a stored file
+ * must dispatch on `media.provider` rather than assuming the current default.
+ */
+function getProvider(name) {
+  return PROVIDERS[name] ?? storage;
+}
+
+export { storage, getProvider, providerName as storageProviderName, UPLOAD_ROOT };

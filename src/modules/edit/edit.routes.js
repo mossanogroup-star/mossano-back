@@ -1,10 +1,6 @@
 import { Router } from "express";
 import { authenticate } from "../../middlewares/auth.js";
-import {
-  canRead,
-  canManage,
-  adminOnly,
-} from "../../middlewares/role.middleware.js";
+import { canRead, canManage, adminOnly } from "../../middlewares/role.middleware.js";
 import { validateRequest } from "../../middlewares/validateRequest.js";
 import { editController } from "./edit.controller.js";
 import {
@@ -23,26 +19,11 @@ const router = Router();
 router.use(authenticate);
 
 router.get("/", canRead, validateRequest(editListSchema), editController.list);
-router.post(
-  "/",
-  canManage,
-  validateRequest(editCreateSchema),
-  editController.create,
-);
+router.post("/", canManage, validateRequest(editCreateSchema), editController.create);
 
 router.get("/:id", canRead, validateRequest(editGetSchema), editController.get);
-router.patch(
-  "/:id",
-  canManage,
-  validateRequest(editUpdateSchema),
-  editController.update,
-);
-router.patch(
-  "/:id/status",
-  canManage,
-  validateRequest(editStatusSchema),
-  editController.setStatus,
-);
+router.patch("/:id", canManage, validateRequest(editUpdateSchema), editController.update);
+router.patch("/:id/status", canManage, validateRequest(editStatusSchema), editController.setStatus);
 
 router.post(
   "/:id/stones",
@@ -57,11 +38,6 @@ router.delete(
   editController.removeStone,
 );
 
-router.delete(
-  "/:id",
-  adminOnly,
-  validateRequest(editDeleteSchema),
-  editController.remove,
-);
+router.delete("/:id", adminOnly, validateRequest(editDeleteSchema), editController.remove);
 
 export default router;

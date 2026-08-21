@@ -1,23 +1,12 @@
 /**
- * Alerting the team when an enquiry arrives.
+ * Alerts the team when an enquiry arrives. Which channel carries it is config,
+ * not code — the client may yet decline the WhatsApp API's cost (§12).
  *
- * The client's flow ends "Backend automatically → Executive ko WhatsApp". Which
- * channel actually carries it is configuration, not code, because the WhatsApp
- * Business API needs an account, a dedicated number, template approval and a
- * budget — none of which exist yet, and one of which (§12) the client may
- * decide against once they see the cost.
- *
- * Selection order:
- *   1. NOTIFY_PROVIDER when set explicitly ("whatsapp" | "email" | "log")
- *   2. "whatsapp" when its credentials and an executive number are present
- *   3. "email" when SMTP and an executive address are present
- *   4. "log" otherwise — writes the exact message to the server log
- *
- * The log provider is not a stub. It means the whole path is exercised in
- * development and on a fresh deploy: the enquiry is stored, the template is
- * rendered, and the message that *would* have been sent is visible. Only the
- * transport is missing, so wiring credentials later changes one env var rather
- * than uncovering untested code.
+ *   1. NOTIFY_PROVIDER, when set explicitly
+ *   2. whatsapp, when its credentials and an executive number exist
+ *   3. email, when SMTP and an executive address exist
+ *   4. log — renders the real message to the server log, so the whole path is
+ *      exercised before any credentials arrive
  */
 import { env } from "../../config/env.js";
 import { logger } from "../../config/logger.js";

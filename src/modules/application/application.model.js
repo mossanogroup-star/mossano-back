@@ -3,19 +3,13 @@
  * @description A photographed application of MOSSANO stone — Website §7 and
  * Admin Scope §4.
  *
- * Admin Scope §4 lists the categories (bathroom wall & floor, kitchen, bar,
- * hotel lobby, penthouse flooring …) and adds "these images can be connected to
- * the relevant stone". That connection is the point: a Shop-by-Application page
- * is only useful if a customer looking at a hotel lobby can find out what the
- * floor actually is and whether any of it is left.
+ * §4's "these images can be connected to the relevant stone" is the point: a
+ * customer looking at a hotel lobby can find out what the floor is and whether
+ * any is left. Categories live in stone.constants.js so the two lists cannot
+ * drift, per §7's own note.
  *
- * The categories live in stone.constants.js, shared with the stone module, so
- * the two lists cannot drift — the requirement document's own §7 note says to
- * keep them the same.
- *
- * This is also the entity the deferred "project page as per project wise" note
- * would extend, which is why it carries a project name and location rather than
- * being a bare image tag.
+ * Carries a project name and location because the deferred "project page as
+ * per project wise" note would extend this entity.
  */
 import mongoose from "mongoose";
 import { APPLICATION_SLUGS } from "../stone/stone.constants.js";

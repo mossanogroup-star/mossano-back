@@ -1,9 +1,6 @@
 import { z } from "zod";
 import { MEDIA_KINDS } from "./media.model.js";
-import {
-  searchSchema,
-  optionalText,
-} from "../../utils/validationPrimitives.js";
+import { searchSchema, optionalText } from "../../utils/validationPrimitives.js";
 import {
   makeSchema,
   idParamSchema,
@@ -41,10 +38,4 @@ const mediaUpdateSchema = makeSchema({
 const mediaGetSchema = makeSchema({ params: idParamSchema });
 const mediaDeleteSchema = makeSchema({ params: idParamSchema });
 
-export {
-  mediaListSchema,
-  mediaUploadSchema,
-  mediaUpdateSchema,
-  mediaGetSchema,
-  mediaDeleteSchema,
-};
+export { mediaListSchema, mediaUploadSchema, mediaUpdateSchema, mediaGetSchema, mediaDeleteSchema };

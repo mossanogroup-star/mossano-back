@@ -1,14 +1,10 @@
 /**
  * @module EnquiryModel
- * @description Everything a customer sends MOSSANO — Admin Scope §5.
+ * @description Everything a customer sends MOSSANO — Admin Scope §5, plus the
+ * structured brief from Private Sourcing (Website §8 Step 1).
  *
- * The fields the requirement names verbatim are here (customer, company,
- * project, stone, requirement, message, contact, status, notes), plus the
- * structured brief a Private Sourcing enquiry carries (Website §8 Step 1).
- *
- * Contact details are stored inline rather than against a customer account,
- * because Website §5 is explicit that Phase 1 has no accounts. A customer
- * record is a Phase 2 entity; until then an enquiry is self-contained.
+ * Contact details are inline rather than against a customer account, because
+ * Website §5 rules out accounts in Phase 1. An enquiry is self-contained.
  */
 import mongoose from "mongoose";
 import { ENQUIRY_TYPES, ENQUIRY_STATUSES } from "./enquiry.constants.js";
@@ -36,13 +32,9 @@ const SourcingBriefSchema = new mongoose.Schema(
     budget: { type: String, trim: true },
     projectLocation: { type: String, trim: true },
     /**
-     * Free text, not a Date — deliberately.
-     *
-     * Website §8 asks for a "required date", but nobody answers that with a
-     * date. The client's own example answer in the Notes is "1mth"; real ones
-     * are "within a month", "before Diwali", "Q3". Parsing that as a Date meant
-     * the whole sourcing brief was rejected with "Invalid date" and the
-     * customer lost the form. Stored as written, and the team reads it.
+     * Free text, not a Date. Website §8 asks for a "required date" but nobody
+     * answers with one — the client's own example is "1mth". Parsing it as a
+     * Date rejected the whole brief with "Invalid date".
      */
     requiredBy: { type: String, trim: true },
     referenceImages: [{ type: mongoose.Schema.Types.ObjectId, ref: "Media" }],
@@ -68,7 +60,7 @@ const EnquirySchema = new mongoose.Schema(
       index: true,
     },
 
-    // ── Who ──
+    // Who
     name: { type: String, required: true, trim: true },
     email: { type: String, trim: true, lowercase: true, index: true },
     phone: { type: String, trim: true, index: true },
@@ -76,13 +68,12 @@ const EnquirySchema = new mongoose.Schema(
     /** Admin Scope §5 lists "Project" as its own field. */
     projectName: { type: String, trim: true },
 
-    // ── What ──
+    // What
     /** The lot they are asking about, where there is one. */
     stone: { type: mongoose.Schema.Types.ObjectId, ref: "Stone", index: true },
     /**
-     * The stone's code and name at the moment of asking. Kept alongside the
-     * reference on purpose: if the lot is later renamed or deleted, the team
-     * must still be able to read what the customer actually enquired about.
+     * The code and name at the moment of asking, so a renamed or withdrawn lot
+     * still tells the team what was enquired about.
      */
     stoneSnapshot: {
       mossanoCode: { type: String, trim: true },
@@ -99,7 +90,7 @@ const EnquirySchema = new mongoose.Schema(
     message: { type: String, trim: true },
     sourcing: { type: SourcingBriefSchema, default: undefined },
 
-    // ── Pipeline ──
+    // Pipeline
     status: {
       type: String,
       enum: ENQUIRY_STATUSES,
@@ -115,7 +106,7 @@ const EnquirySchema = new mongoose.Schema(
     /** Set the first time the status leaves "new", for a response-time figure. */
     firstRespondedAt: { type: Date },
 
-    // ── Provenance ──
+    // Provenance
     /** Which page produced it, so the team can see what the site is doing. */
     sourcePath: { type: String, trim: true },
     userAgent: { type: String, trim: true },

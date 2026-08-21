@@ -98,13 +98,12 @@ const enquiryService = {
    * time it leaves "new" and never overwritten, so response time stays a
    * measurement of the first reply rather than the most recent edit.
    */
-  async setStatus(id, status, user) {
+  async setStatus(id, status) {
     const enquiry = await enquiryRepository.findById(id);
     if (!enquiry) throw new AppError("Enquiry not found", 404);
 
     const patch = { status };
-    if (status !== "new" && !enquiry.firstRespondedAt)
-      patch.firstRespondedAt = new Date();
+    if (status !== "new" && !enquiry.firstRespondedAt) patch.firstRespondedAt = new Date();
 
     return enquiryRepository.findByIdAndSave(id, patch);
   },

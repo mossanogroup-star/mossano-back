@@ -11,6 +11,7 @@ import { requestContextProvider } from "./middlewares/requestContextProvider.js"
 import { notFoundHandler } from "./middlewares/notFoundHandler.js";
 import { errorHandler } from "./middlewares/errorHandler.js";
 import routes from "./routes/index.js";
+import seoRoutes from "./modules/public/seo.routes.js";
 import { mountStorefront } from "./ssr/mountStorefront.js";
 
 function resolveCorsOrigins() {
@@ -54,8 +55,7 @@ async function createApp() {
       autoLogging: {
         // Asset requests would drown the log; one line per page or API call is
         // what is actually readable.
-        ignore: (req) =>
-          req.url.startsWith("/assets/") || req.url.startsWith("/uploads/"),
+        ignore: (req) => req.url.startsWith("/assets/") || req.url.startsWith("/uploads/"),
       },
       genReqId: (req) => req.id,
       customLogLevel: (_req, res, err) => {
@@ -93,6 +93,11 @@ async function createApp() {
       },
     }),
   );
+
+  // robots.txt and sitemap.xml live at the root, where crawlers look for them,
+  // so they are mounted before /api and before the SSR handler that would
+  // otherwise answer them with a 404 page.
+  app.use(seoRoutes);
 
   app.use("/api", routes);
   // JSON 404 for the API only. Anything else falls through to the storefront,

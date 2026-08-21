@@ -1,9 +1,5 @@
 import { SelectionModel } from "./selection.model.js";
-import {
-  escapeRegex,
-  runPagedQuery,
-  softDeleteById,
-} from "../../utils/repositoryHelpers.js";
+import { escapeRegex, runPagedQuery, softDeleteById } from "../../utils/repositoryHelpers.js";
 
 const POPULATE = [
   {
@@ -14,12 +10,7 @@ const POPULATE = [
   { path: "sourceEnquiry", select: "reference name company" },
 ];
 
-function buildFilter({
-  search,
-  publishedOnly,
-  includeRevoked,
-  includeDeleted,
-}) {
+function buildFilter({ search, publishedOnly, includeRevoked, includeDeleted }) {
   const filter = {};
   if (!includeDeleted) filter.isDeleted = false;
   if (publishedOnly) filter.isPublished = true;
@@ -27,12 +18,7 @@ function buildFilter({
 
   if (search?.trim()) {
     const rx = new RegExp(escapeRegex(search.trim()), "i");
-    filter.$or = [
-      { title: rx },
-      { customerName: rx },
-      { projectName: rx },
-      { reference: rx },
-    ];
+    filter.$or = [{ title: rx }, { customerName: rx }, { projectName: rx }, { reference: rx }];
   }
   return filter;
 }
@@ -49,10 +35,7 @@ const selectionRepository = {
     });
   },
 
-  findById: (id) =>
-    SelectionModel.findOne({ _id: id, isDeleted: false })
-      .populate(POPULATE)
-      .lean(),
+  findById: (id) => SelectionModel.findOne({ _id: id, isDeleted: false }).populate(POPULATE).lean(),
 
   /**
    * The public link's lookup. Every guard is in the query rather than checked
@@ -75,8 +58,7 @@ const selectionRepository = {
       .lean(),
 
   /** Used only to tell "wrong token" apart from "expired or revoked". */
-  findAnyByToken: (token) =>
-    SelectionModel.findOne({ token, isDeleted: false }).lean(),
+  findAnyByToken: (token) => SelectionModel.findOne({ token, isDeleted: false }).lean(),
 
   tokenExists: (token) => SelectionModel.exists({ token }),
 

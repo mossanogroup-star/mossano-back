@@ -1,8 +1,9 @@
 import { mediaRepository } from "./media.repository.js";
-import { storage } from "../../utils/storage/index.js";
+import { storage, getProvider } from "../../utils/storage/index.js";
 import { AppError } from "../../utils/AppError.js";
 import { env } from "../../config/env.js";
 import { logger } from "../../config/logger.js";
+import { isVideoUpload } from "../../middlewares/upload.js";
 
 /** Where each kind lands in the storage bucket. */
 const FOLDER_BY_KIND = {
@@ -16,7 +17,7 @@ const FOLDER_BY_KIND = {
 };
 
 function assertWithinLimit(file) {
-  const isVideo = file.mimetype?.startsWith("video/");
+  const isVideo = isVideoUpload(file);
   const limitMb = isVideo ? env.MAX_VIDEO_UPLOAD_MB : env.MAX_UPLOAD_MB;
   if (file.size > limitMb * 1024 * 1024) {
     throw new AppError(
@@ -47,7 +48,10 @@ const mediaService = {
   async uploadOne(file, { kind = "general", alt = "", caption = "" }, user) {
     assertWithinLimit(file);
 
-    const resolvedKind = file.mimetype?.startsWith("video/") ? "video" : kind;
+    // Decided by the same helper the upload filter uses, so a phone that sent
+    // "application/octet-stream" for an .mp4 is still stored as video rather
+    // than being served to the browser inside an <img>.
+    const resolvedKind = isVideoUpload(file) ? "video" : kind;
     const stored = await storage.upload(file.buffer, {
       filename: file.originalname,
       mimeType: file.mimetype,
@@ -82,10 +86,7 @@ const mediaService = {
       try {
         uploaded.push(await this.uploadOne(file, meta, user));
       } catch (err) {
-        logger.warn(
-          { err, filename: file.originalname },
-          "Media upload failed",
-        );
+        logger.warn({ err, filename: file.originalname }, "Media upload failed");
         errors.push({ filename: file.originalname, message: err.message });
       }
     }
@@ -117,7 +118,8 @@ const mediaService = {
 
     await mediaRepository.softDelete(id);
     try {
-      await storage.remove(media.storageKey, media.resourceType);
+      // The record's provider, not the active one — see getProvider.
+      await getProvider(media.provider).remove(media.storageKey, media.resourceType);
     } catch (err) {
       logger.warn(
         { err, storageKey: media.storageKey },

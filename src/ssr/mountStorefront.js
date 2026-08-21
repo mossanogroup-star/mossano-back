@@ -4,14 +4,10 @@
  *   /admin/*   the admin SPA shell — never server-rendered, never crawled
  *   /*         the public storefront, server-rendered per request
  *
- * Development runs Vite in middleware mode so the storefront hot-reloads
- * through this same process. Production reads the two build outputs. Both paths
- * call the same `render()` export, so an SSR bug cannot hide until deploy.
- *
- * Why server-render at all: the brief's premise is that architects discover
- * stone through Instagram and WhatsApp on mobile, and a forwarded link that
- * previews blank is a lost enquiry. Every public route therefore has to return
- * real HTML to a crawler that runs no JavaScript. See docs/ARCHITECTURE.md.
+ * Development runs Vite in middleware mode, production reads the two build
+ * outputs, and both call the same `render()` — so an SSR bug cannot hide until
+ * deploy. Why server-render at all: a forwarded link that previews blank is a
+ * lost enquiry. See docs/ARCHITECTURE.md.
  */
 import fs from "fs";
 import path from "path";
@@ -31,11 +27,7 @@ function frontendIsBuilt() {
   );
 }
 
-/**
- * Shown when the server is up but the storefront has not been built. Without
- * it the failure presents as a stack trace or a blank page, and the actual
- * remedy — one command — is not obvious.
- */
+/** Server up, storefront unbuilt — states the one command that fixes it. */
 function placeholderPage(reason) {
   return `<!doctype html><html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
@@ -68,10 +60,7 @@ async function mountStorefront(app) {
         "Storefront build output is missing. Run `npm run build` in mossano-front.",
       );
       app.use((_req, res) =>
-        res
-          .status(503)
-          .type("html")
-          .send(placeholderPage("No build output found.")),
+        res.status(503).type("html").send(placeholderPage("No build output found.")),
       );
       return;
     }
@@ -83,16 +72,12 @@ async function mountStorefront(app) {
         index: false,
         maxAge: "1y",
         setHeaders: (res, filePath) => {
-          if (filePath.endsWith(".html"))
-            res.setHeader("Cache-Control", "no-cache");
+          if (filePath.endsWith(".html")) res.setHeader("Cache-Control", "no-cache");
         },
       }),
     );
 
-    const template = fs.readFileSync(
-      path.join(CLIENT_DIST, "index.html"),
-      "utf8",
-    );
+    const template = fs.readFileSync(path.join(CLIENT_DIST, "index.html"), "utf8");
 
     // pathToFileURL, not the raw path: Node's ESM loader rejects a Windows
     // absolute path outright — "D:\..." is read as a URL with the scheme "d:".
@@ -112,15 +97,10 @@ async function mountStorefront(app) {
     app.use(viteServer.middlewares);
 
     render = async (url, ctx) => {
-      const raw = fs.readFileSync(
-        path.join(env.FRONTEND_DIR, "index.html"),
-        "utf8",
-      );
+      const raw = fs.readFileSync(path.join(env.FRONTEND_DIR, "index.html"), "utf8");
       // Injects the HMR client and rewrites bare module specifiers.
       const template = await viteServer.transformIndexHtml(url, raw);
-      const { render: devRender } = await viteServer.ssrLoadModule(
-        "/src/entry-server.tsx",
-      );
+      const { render: devRender } = await viteServer.ssrLoadModule("/src/entry-server.tsx");
       return devRender({ url, template, ...ctx });
     };
 

@@ -1,25 +1,14 @@
 /**
- * Rendered-HTML cache for the storefront, with stale-while-revalidate.
+ * Rendered-HTML cache, stale-while-revalidate.
  *
- * Two problems it solves at once.
+ * Rendering a stone page costs a Mongo round-trip plus renderToString, which
+ * would otherwise repeat per visitor for a page nobody edited. Admin Scope §2
+ * needs a Sold flag visible immediately, so writes invalidate explicitly and
+ * the TTL is only a backstop.
  *
- * Rendering a stone page costs a Mongo round-trip plus React's
- * renderToString. Under any real traffic — a link doing the rounds on an
- * architect's WhatsApp group — that repeats per visitor for a page nobody has
- * edited.
- *
- * And Admin Scope §2 requires that flipping a stone to Sold "automatically
- * updates wherever that stone is shown". A time-based cache alone would serve
- * the old status until it expired. So writes invalidate explicitly, and the TTL
- * is only a backstop for anything an invalidation missed.
- *
- * Stale entries are served immediately and refreshed in the background, so a
- * cache expiry never becomes a slow response, and a burst of traffic on a cold
- * key triggers one render rather than one per request.
- *
- * In memory, and therefore per-process. Behind more than one instance this
- * becomes a shared store, or each instance keeps its own copy and an
- * invalidation only reaches the instance that served the write.
+ * ⚠ In memory, so per-process. Behind more than one instance an invalidation
+ * reaches only the instance that served the write — this needs a shared store
+ * before scaling horizontally.
  */
 import { logger } from "../config/logger.js";
 import { env } from "../config/env.js";
@@ -62,9 +51,7 @@ const htmlCache = {
           .then((fresh) => {
             store.set(key, { ...fresh, renderedAt: Date.now() });
           })
-          .catch((err) =>
-            logger.warn({ err, key }, "Background SSR refresh failed"),
-          )
+          .catch((err) => logger.warn({ err, key }, "Background SSR refresh failed"))
           .finally(() => inFlight.delete(key));
         inFlight.set(key, task);
       }
@@ -79,8 +66,7 @@ const htmlCache = {
     if (inFlight.has(key)) {
       await inFlight.get(key);
       const filled = store.get(key);
-      if (filled)
-        return { html: filled.html, status: filled.status, cache: "hit" };
+      if (filled) return { html: filled.html, status: filled.status, cache: "hit" };
     }
 
     const task = render()
@@ -107,8 +93,7 @@ const htmlCache = {
     for (const path of list) {
       if (store.delete(path)) dropped += 1;
     }
-    if (dropped)
-      logger.debug({ paths: list, dropped }, "SSR cache invalidated");
+    if (dropped) logger.debug({ paths: list, dropped }, "SSR cache invalidated");
     return dropped;
   },
 

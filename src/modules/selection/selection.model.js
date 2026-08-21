@@ -6,16 +6,13 @@
  *   Prepared for: XYZ Architects
  *   Project: Mumbai Residence
  *
- * The team picks stones that already exist, adds a note and reference photos,
- * and shares a link. Admin Scope §6 ends with "no need to upload the same stone
- * again", which is the design constraint: a Selection holds references, so the
- * availability an architect sees in a selection sent last week is today's.
+ * Admin Scope §6's "no need to upload the same stone again" is the design
+ * constraint: a Selection holds references, so availability in a link sent
+ * last week is today's.
  *
- * ── On the link ──────────────────────────────────────────────────────────
- * It is unauthenticated by necessity — the customer has no account in Phase 1 —
- * so the token is the only thing standing between a private selection and
- * anyone who guesses a URL. It is 32 bytes from a CSPRNG, never sequential,
- * never derived from the customer's name, and revocable.
+ * The link is unauthenticated by necessity — no accounts in Phase 1 — so the
+ * token is the only thing protecting it: 32 CSPRNG bytes, never sequential,
+ * never derived from the customer's name, revocable.
  */
 import mongoose from "mongoose";
 
@@ -64,14 +61,14 @@ const SelectionSchema = new mongoose.Schema(
     /** The enquiry that prompted it, where there was one. */
     sourceEnquiry: { type: mongoose.Schema.Types.ObjectId, ref: "Enquiry" },
 
-    // ── The private link ──
+    // The private link
     token: { type: String, required: true, unique: true, index: true },
     expiresAt: { type: Date, index: true },
     isRevoked: { type: Boolean, default: false, index: true },
     /** Nothing is shared until the team says so — a draft has no live link. */
     isPublished: { type: Boolean, default: false, index: true },
 
-    // ── Engagement, so the team knows whether it landed ──
+    // Engagement, so the team knows whether it landed
     viewCount: { type: Number, default: 0 },
     firstViewedAt: { type: Date },
     lastViewedAt: { type: Date },

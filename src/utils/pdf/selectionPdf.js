@@ -1,14 +1,9 @@
 /**
- * Renders a private selection as a PDF — Admin Scope §6, Website §9.
+ * A private selection as a PDF — Admin Scope §6, Website §9.
  *
- * This is the artefact that gets forwarded to a client who is not going to open
- * a link, and printed for a site meeting. It therefore has to carry the same
- * facts the web page does, including the ones that are absent: a spec that
- * reads "On request" on the site reads "On request" here too, never blank and
- * never guessed.
- *
- * Images are fetched and embedded rather than linked, because the file has to
- * survive being emailed to someone with no access to the CDN.
+ * Carries the same facts as the web page, absent ones included: a spec that
+ * reads "On request" on the site reads "On request" here. Images are embedded
+ * rather than linked, so the file survives being emailed.
  */
 import PDFDocument from "pdfkit";
 import { logger } from "../../config/logger.js";
@@ -21,17 +16,12 @@ const RULE = "#ddd6cd";
 const BRASS = "#9d7c34";
 
 /**
- * Fetch a slab image and hand back something pdfkit can actually embed.
+ * Fetch a slab image as something pdfkit can embed.
  *
- * pdfkit supports JPEG and PNG only. Every image in this catalogue is WebP —
- * it is what the asset pipeline produces and what Cloudinary serves by default —
- * so passing the fetched bytes straight to `doc.image()` throws "Unknown image
- * format" and the PDF silently comes out with no photography at all, which on a
- * document whose entire purpose is showing stone is a worse failure than an
- * error would have been.
- *
- * So anything that is not already JPEG or PNG is transcoded. A failure returns
- * null and the caller draws a placeholder rather than losing the document.
+ * ⚠ pdfkit takes JPEG and PNG only, and every image here is WebP. Passing the
+ * bytes straight to `doc.image()` throws "Unknown image format" and the PDF
+ * comes out with no photography and no error — so anything else is transcoded.
+ * A failure returns null and the caller draws a placeholder.
  */
 async function fetchImage(url, { timeoutMs = 8000 } = {}) {
   if (!url) return null;
@@ -42,25 +32,18 @@ async function fetchImage(url, { timeoutMs = 8000 } = {}) {
   try {
     const res = await fetch(url, { signal: controller.signal });
     if (!res.ok) {
-      logger.warn(
-        { url, status: res.status },
-        "Slab image could not be fetched for the PDF",
-      );
+      logger.warn({ url, status: res.status }, "Slab image could not be fetched for the PDF");
       return null;
     }
 
     const buffer = Buffer.from(await res.arrayBuffer());
     const type = res.headers.get("content-type") ?? "";
-    if (type.includes("jpeg") || type.includes("jpg") || type.includes("png"))
-      return buffer;
+    if (type.includes("jpeg") || type.includes("jpg") || type.includes("png")) return buffer;
 
     const { default: sharp } = await import("sharp");
     return await sharp(buffer).jpeg({ quality: 82 }).toBuffer();
   } catch (err) {
-    logger.warn(
-      { err: err.message, url },
-      "Could not prepare an image for the selection PDF",
-    );
+    logger.warn({ err: err.message, url }, "Could not prepare an image for the selection PDF");
     return null;
   } finally {
     clearTimeout(timer);
@@ -68,10 +51,8 @@ async function fetchImage(url, { timeoutMs = 8000 } = {}) {
 }
 
 /**
- * Ask the storage provider for a page-sized rendition rather than the original.
- * A selection of twelve slabs at full resolution is a 40 MB email attachment
- * that will bounce; at 900px it is a few hundred kilobytes and still sharp in
- * print.
+ * A page-sized rendition, not the original: twelve slabs at full resolution is
+ * a 40 MB attachment that bounces, where 900px still prints sharp.
  */
 function printUrl(media) {
   if (!media) return null;
@@ -83,9 +64,8 @@ function printUrl(media) {
 }
 
 /**
- * Wide letter-spacing is the house display treatment (see DESIGN.md), and in
- * pdfkit it is an option on `.text()` — not a chainable document method. Calling
- * `doc.characterSpacing(4)` throws, because it does not exist.
+ * ⚠ In pdfkit, letter-spacing is an option on `.text()`, not a chainable
+ * document method. `doc.characterSpacing(4)` throws — it does not exist.
  */
 function tracked(doc, text, spacing, options = {}) {
   doc.text(text, { characterSpacing: spacing, ...options });
@@ -125,11 +105,7 @@ function drawHeader(doc, selection) {
   doc.text(`Reference: ${selection.reference}`);
 
   if (selection.introduction) {
-    doc
-      .moveDown(1)
-      .fillColor(INK)
-      .fontSize(10)
-      .text(selection.introduction, { width: 430 });
+    doc.moveDown(1).fillColor(INK).fontSize(10).text(selection.introduction, { width: 430 });
   }
 }
 
@@ -175,15 +151,10 @@ function drawStone(doc, stone, imageBuffer, index) {
   // Positioned explicitly: the image occupies the left column, so the text
   // starts at its own x rather than flowing underneath the picture.
   doc.fillColor(BRASS).fontSize(8);
-  doc.text(
-    `${String(index + 1).padStart(2, "0")}  ·  ${stone.mossanoCode}`,
-    textX,
-    top,
-    {
-      width: textWidth,
-      characterSpacing: 1.2,
-    },
-  );
+  doc.text(`${String(index + 1).padStart(2, "0")}  ·  ${stone.mossanoCode}`, textX, top, {
+    width: textWidth,
+    characterSpacing: 1.2,
+  });
 
   doc
     .moveDown(0.4)
@@ -192,22 +163,16 @@ function drawStone(doc, stone, imageBuffer, index) {
     .text(stone.name, textX, doc.y, { width: textWidth });
 
   doc.moveDown(0.3).fontSize(9).fillColor(MUTED);
-  doc.text(
-    `${stone.availabilityLabel}${stone.verifiedLabel ? ` · ${stone.verifiedLabel}` : ""}`,
-    {
-      width: textWidth,
-    },
-  );
+  doc.text(`${stone.availabilityLabel}${stone.verifiedLabel ? ` · ${stone.verifiedLabel}` : ""}`, {
+    width: textWidth,
+  });
 
   doc.moveDown(0.7);
   // The same spec block the stone page renders, "On request" included — the
   // DTO already resolved it, so the two cannot disagree.
   for (const spec of stone.specs ?? []) {
     const y = doc.y;
-    doc
-      .fillColor(MUTED)
-      .fontSize(8.5)
-      .text(spec.label, textX, y, { width: 96 });
+    doc.fillColor(MUTED).fontSize(8.5).text(spec.label, textX, y, { width: 96 });
     doc
       .fillColor(INK)
       .fontSize(8.5)
@@ -246,15 +211,13 @@ function drawFooter(doc, { whatsappNumber, email }) {
 }
 
 /**
- * @param {object} selection the public selection DTO, whose `stones` array
- *   carries stone DTOs in curated order, each with its `selectionNote`
- * @returns {Promise<Buffer>}
+ * DTOs, not Mongo documents: the DTO is where the spec block was resolved, so
+ * the PDF and the web page cannot disagree. Passing raw documents produced a
+ * PDF of undefined fields — a document has no `specs` at all.
  *
- * Takes DTOs rather than Mongo documents on purpose. The DTO is where the spec
- * block has already been resolved — including the "On request" values — so the
- * PDF and the web page state exactly the same facts. Passing raw documents here
- * silently produced a PDF of undefined fields, because a document has
- * `primaryImageUrl` and no `specs` at all.
+ * @param {object} selection public selection DTO; `stones` carries stone DTOs
+ *   in curated order, each with its `selectionNote`
+ * @returns {Promise<Buffer>}
  */
 async function buildSelectionPdf(selection, { whatsappNumber, email } = {}) {
   const items = selection.stones ?? [];
@@ -262,9 +225,7 @@ async function buildSelectionPdf(selection, { whatsappNumber, email } = {}) {
   // Fetched up front and in parallel: doing it inside the draw loop would
   // serialise a dozen network round-trips into the response time.
   const buffers = await Promise.all(
-    items.map((stone) =>
-      fetchImage(printUrl(stone.primaryImage) ?? stone.primaryImageUrl),
-    ),
+    items.map((stone) => fetchImage(printUrl(stone.primaryImage) ?? stone.primaryImageUrl)),
   );
 
   const doc = new PDFDocument({
@@ -286,10 +247,7 @@ async function buildSelectionPdf(selection, { whatsappNumber, email } = {}) {
   items.forEach((stone, i) => drawStone(doc, stone, buffers[i], i));
 
   if (!items.length) {
-    doc
-      .fillColor(MUTED)
-      .fontSize(10)
-      .text("No stones have been added to this selection yet.");
+    doc.fillColor(MUTED).fontSize(10).text("No stones have been added to this selection yet.");
   }
 
   // bufferPages defers page flushing, so the footer can be stamped onto every

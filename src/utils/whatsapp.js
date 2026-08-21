@@ -1,16 +1,9 @@
 /**
- * wa.me deep links.
+ * wa.me deep links — Admin Scope §8, which asks for the MOSSANO code in the
+ * message: "Hi MOSSANO, I am interested in MM-024 Calacatta Viola."
  *
- * Admin Scope §8: WhatsApp must be reachable from Home, Stone Detail, Private
- * Sourcing, Private Selection and Contact, and "where possible, the WhatsApp
- * message should include the relevant MOSSANO code" —
- *
- *     Hi MOSSANO, I am interested in MM-024 Calacatta Viola.
- *
- * Built on the server rather than in the browser for two reasons: the number is
- * configuration, and the storefront is server-rendered, so a link assembled at
- * render time is present in the HTML a crawler sees and needs no JavaScript to
- * work.
+ * Built server-side so the link is in the HTML a crawler sees and works with
+ * JavaScript disabled.
  */
 import { env } from "../config/env.js";
 

@@ -18,22 +18,24 @@ if (env.CLOUDINARY_CONFIGURED) {
   });
 }
 
-/** Cloudinary calls video and image different resource types; PDFs are "raw". */
-function resourceTypeFor(mimeType) {
-  if (mimeType?.startsWith("video/")) return "video";
-  if (mimeType?.startsWith("image/")) return "image";
-  return "raw";
-}
+/**
+ * Cloudinary stores images, video and everything else under different resource
+ * types, and the delivery URL differs per type — so getting this wrong means an
+ * image stored as `raw`, with no dimensions and no transformations. That is
+ * exactly what happened when the browser sent `application/octet-stream`, which
+ * phones do routinely for HEIC and WebP.
+ *
+ * So the type is not guessed from the declared MIME type at all. `auto` lets
+ * Cloudinary inspect the bytes, and its answer is what gets stored.
+ */
+const AUTO_RESOURCE_TYPE = "auto";
 
 function uploadBuffer(buffer, options) {
   return new Promise((resolve, reject) => {
-    const stream = cloudinary.uploader.upload_stream(
-      options,
-      (error, result) => {
-        if (error) return reject(error);
-        resolve(result);
-      },
-    );
+    const stream = cloudinary.uploader.upload_stream(options, (error, result) => {
+      if (error) return reject(error);
+      resolve(result);
+    });
     stream.end(buffer);
   });
 }
@@ -41,17 +43,19 @@ function uploadBuffer(buffer, options) {
 const cloudinaryProvider = {
   name: "cloudinary",
 
-  async upload(buffer, { filename, mimeType, folder }) {
-    const resourceType = resourceTypeFor(mimeType);
+  async upload(buffer, { filename, folder }) {
     const result = await uploadBuffer(buffer, {
       folder: [env.CLOUDINARY_FOLDER, folder].filter(Boolean).join("/"),
-      resource_type: resourceType,
+      resource_type: AUTO_RESOURCE_TYPE,
       // Keep the original name as the visible part of the public id, but let
       // Cloudinary append its own suffix so re-uploading never overwrites.
       public_id: filename?.replace(/\.[^.]+$/, "").slice(0, 80) || undefined,
       unique_filename: true,
       overwrite: false,
     });
+
+    // Whatever Cloudinary decided the bytes actually were.
+    const resourceType = result.resource_type ?? "image";
 
     return {
       provider: "cloudinary",
@@ -72,16 +76,21 @@ const cloudinaryProvider = {
    * Build a delivery URL at a given width. This is why one upload is enough:
    * the storefront asks for the size it needs at render time.
    */
-  derive(
-    storageKey,
-    resourceType = "image",
-    { width, height, crop = "limit" } = {},
-  ) {
+  derive(storageKey, resourceType = "image", { width, height, crop = "limit", trim = false } = {}) {
     if (!env.CLOUDINARY_CONFIGURED || !storageKey) return null;
     return cloudinary.url(storageKey, {
       resource_type: resourceType,
       secure: true,
       transformation: [
+        // Every slab here was cropped out of a PDF catalogue page, and several
+        // kept a strip of the photographer's backdrop down one or both edges.
+        // Invisible on a small card, glaring across a full-bleed hero.
+        //
+        // Tolerance 45 was chosen by measuring, not guessing: it clears the
+        // border on both the darkest and the lightest slabs in the catalogue,
+        // where 35 left a column behind and 55 began eating into the stone.
+        // Applied at delivery, so the stored original is never degraded.
+        ...(trim ? [{ effect: "trim:45" }] : []),
         { width, height, crop },
         { quality: "auto", fetch_format: "auto" },
       ],

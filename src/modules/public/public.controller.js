@@ -5,6 +5,7 @@ import { toPublicStoneDto, toStoneCardDto } from "../stone/stone.dto.js";
 import { toPublicEditDto, toPublicEditDetailDto } from "../edit/edit.dto.js";
 import { toPublicApplicationDto } from "../application/application.dto.js";
 import { toPublicSelectionDto } from "../selection/selection.dto.js";
+import { toHeroMediaDto } from "../media/media.dto.js";
 import { toSubmissionReceiptDto } from "../enquiry/enquiry.dto.js";
 import { buildSelectionPdf } from "../../utils/pdf/selectionPdf.js";
 import { sendSuccess } from "../../utils/response.js";
@@ -56,6 +57,16 @@ const home = asyncHandler(async (_req, res) => {
             stones: data.currentEdit.resolvedStones,
           })
         : null,
+
+      // Resolved on the server so the storefront renders what it is given
+      // rather than guessing from whatever sorted first — see resolveHero.
+      hero: data.hero.stone
+        ? {
+            source: data.hero.source,
+            stone: toStoneCardDto(data.hero.stone),
+            image: toHeroMediaDto(data.hero.stone.images?.[0]) ?? null,
+          }
+        : null,
       looks: data.looks,
       applications: data.applications,
     },
@@ -63,9 +74,7 @@ const home = asyncHandler(async (_req, res) => {
 });
 
 const shop = asyncHandler(async (req, res) => {
-  const { items, facets, ...meta } = await publicService.shop(
-    req.validated.query,
-  );
+  const { items, facets, ...meta } = await publicService.shop(req.validated.query);
   return sendSuccess(res, {
     data: items.map(toStoneCardDto),
     meta: { ...meta, facets },
@@ -101,9 +110,7 @@ const edits = asyncHandler(async (_req, res) => {
 });
 
 const edit = asyncHandler(async (req, res) => {
-  const { edit: doc, stones } = await publicService.edit(
-    req.validated.params.slug,
-  );
+  const { edit: doc, stones } = await publicService.edit(req.validated.params.slug);
   return sendSuccess(res, { data: toPublicEditDetailDto(doc, stones) });
 });
 
@@ -127,11 +134,10 @@ const applications = asyncHandler(async (_req, res) =>
 );
 
 const application = asyncHandler(async (req, res) => {
-  const { items, projects, slug, label, ...meta } =
-    await publicService.application(
-      req.validated.params.slug,
-      req.validated.query,
-    );
+  const { items, projects, slug, label, ...meta } = await publicService.application(
+    req.validated.params.slug,
+    req.validated.query,
+  );
   return sendSuccess(res, {
     data: {
       projects: projects.map((p) => toPublicApplicationDto(p)),
@@ -142,9 +148,7 @@ const application = asyncHandler(async (req, res) => {
 });
 
 const applicationProject = asyncHandler(async (req, res) => {
-  const { project, stones } = await publicService.applicationProject(
-    req.validated.params.slug,
-  );
+  const { project, stones } = await publicService.applicationProject(req.validated.params.slug);
   return sendSuccess(res, { data: toPublicApplicationDto(project, stones) });
 });
 

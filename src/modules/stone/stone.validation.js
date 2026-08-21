@@ -61,16 +61,9 @@ const stoneBodyCreateSchema = z.object({
   areaSqFt: z.number().min(0).max(1_000_000).optional(),
 
   looks: z.array(z.enum(LOOK_SLUGS)).max(6).optional().default([]),
-  applications: z
-    .array(z.enum(APPLICATION_SLUGS))
-    .max(7)
-    .optional()
-    .default([]),
+  applications: z.array(z.enum(APPLICATION_SLUGS)).max(7).optional().default([]),
 
-  availability: z
-    .enum(AVAILABILITY)
-    .optional()
-    .default("verification_required"),
+  availability: z.enum(AVAILABILITY).optional().default("verification_required"),
   description: optionalText(4000),
 
   imageIds: z.array(objectIdSchema).max(60).optional(),

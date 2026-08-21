@@ -25,25 +25,13 @@ router.get("/config", publicController.config);
 router.get("/home", publicController.home);
 
 router.get("/stones", validateRequest(publicShopSchema), publicController.shop);
-router.get(
-  "/stones/:slug",
-  validateRequest(publicStoneSchema),
-  publicController.stone,
-);
+router.get("/stones/:slug", validateRequest(publicStoneSchema), publicController.stone);
 
 router.get("/edits", publicController.edits);
-router.get(
-  "/edits/:slug",
-  validateRequest(publicEditSchema),
-  publicController.edit,
-);
+router.get("/edits/:slug", validateRequest(publicEditSchema), publicController.edit);
 
 router.get("/looks", publicController.looks);
-router.get(
-  "/looks/:slug",
-  validateRequest(publicLookSchema),
-  publicController.look,
-);
+router.get("/looks/:slug", validateRequest(publicLookSchema), publicController.look);
 
 router.get("/applications", publicController.applications);
 // Static segment before the category slug, or "projects" is read as a category.
@@ -58,11 +46,7 @@ router.get(
   publicController.application,
 );
 
-router.post(
-  "/favourites",
-  validateRequest(publicFavouritesSchema),
-  publicController.favourites,
-);
+router.post("/favourites", validateRequest(publicFavouritesSchema), publicController.favourites);
 
 // The only unauthenticated write. Rate-limited per IP.
 router.post(

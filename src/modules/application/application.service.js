@@ -58,12 +58,8 @@ const applicationService = {
       stoneRepository.facets(),
     ]);
 
-    const projectsBy = new Map(
-      projectCounts.map((c) => [c.application, c.count]),
-    );
-    const stonesBy = new Map(
-      (stoneFacets.applications ?? []).map((c) => [c.value, c.count]),
-    );
+    const projectsBy = new Map(projectCounts.map((c) => [c.application, c.count]));
+    const stonesBy = new Map((stoneFacets.applications ?? []).map((c) => [c.value, c.count]));
 
     return APPLICATIONS.map(({ slug, label }) => {
       const projectCount = projectsBy.get(slug) ?? 0;
@@ -73,9 +69,7 @@ const applicationService = {
         label,
         projectCount,
         stoneCount,
-        href: projectCount
-          ? `/application/${slug}`
-          : `/shop?application=${slug}`,
+        href: projectCount ? `/application/${slug}` : `/shop?application=${slug}`,
         isEmpty: projectCount === 0 && stoneCount === 0,
       };
     });

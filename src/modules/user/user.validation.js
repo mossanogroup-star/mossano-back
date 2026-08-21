@@ -12,10 +12,7 @@ const passwordSchema = z
   .string()
   .min(10, "Use at least 10 characters")
   .max(200)
-  .refine(
-    (v) => /[a-zA-Z]/.test(v) && /\d/.test(v),
-    "Include at least one letter and one number",
-  );
+  .refine((v) => /[a-zA-Z]/.test(v) && /\d/.test(v), "Include at least one letter and one number");
 
 const userBodyCreateSchema = z.object({
   name: z.string().trim().min(1, "Name is required").max(120),
@@ -41,10 +38,4 @@ const userUpdateSchema = makeSchema({
 });
 const userDeleteSchema = makeSchema({ params: idParamSchema });
 
-export {
-  userListSchema,
-  userCreateSchema,
-  userGetSchema,
-  userUpdateSchema,
-  userDeleteSchema,
-};
+export { userListSchema, userCreateSchema, userGetSchema, userUpdateSchema, userDeleteSchema };

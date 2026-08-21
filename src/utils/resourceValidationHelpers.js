@@ -52,10 +52,7 @@ function stripDefault(field) {
       current = current.def.innerType;
       continue;
     }
-    if (
-      current instanceof z.ZodOptional &&
-      current.def.innerType instanceof z.ZodDefault
-    ) {
+    if (current instanceof z.ZodOptional && current.def.innerType instanceof z.ZodDefault) {
       current = current.def.innerType.def.innerType.optional();
       continue;
     }

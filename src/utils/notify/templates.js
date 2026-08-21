@@ -1,20 +1,8 @@
 /**
- * The executive's alert, transcribed from the client's own document.
+ * The executive's alert, worded as the Website document specifies it.
  *
- * The Website document's second drop specifies this verbatim:
- *
- *     New Stone Enquiry – Mossano
- *     Customer: [Name]   Product/Project: [Project]   Interest: Yes
- *     Quantity: 5,000 sqft   Location: Mumbai   Required Delivery: 1 month
- *     Customer contact: +91 XXXXX XXXXX
- *     View enquiry: [CRM link]
- *
- * Kept close to that wording on purpose — it is what the team asked to receive,
- * and it is what they will be scanning on a phone. The one liberty taken is
- * omitting a line entirely when its value is unknown, rather than printing
- * "Quantity: —". A half-filled template is harder to read at a glance than a
- * short one, and the same "never state what we do not know" rule that governs
- * the storefront applies to what the team is told.
+ * A line whose value is unknown is omitted rather than printed empty — the
+ * same "never state what we do not know" rule the storefront follows.
  */
 import { env } from "../../config/env.js";
 import { ENQUIRY_TYPE_LABELS } from "../../modules/enquiry/enquiry.constants.js";
@@ -23,8 +11,7 @@ import { ENQUIRY_TYPE_LABELS } from "../../modules/enquiry/enquiry.constants.js"
 function formatContact(phone, email) {
   if (phone) {
     const digits = phone.replace(/\D/g, "").replace(/^0+/, "");
-    if (digits.length === 10)
-      return `+91 ${digits.slice(0, 5)} ${digits.slice(5)}`;
+    if (digits.length === 10) return `+91 ${digits.slice(0, 5)} ${digits.slice(5)}`;
     return phone.startsWith("+") ? phone : `+${digits}`;
   }
   return email || "not given";
@@ -36,11 +23,7 @@ function buildEnquiryAlert(enquiry) {
     ? `${enquiry.stoneSnapshot.mossanoCode} ${enquiry.stoneSnapshot.name ?? ""}`.trim()
     : null;
 
-  const lines = [
-    `New Stone Enquiry – Mossano`,
-    ``,
-    `Customer: ${enquiry.name}`,
-  ];
+  const lines = [`New Stone Enquiry – Mossano`, ``, `Customer: ${enquiry.name}`];
 
   // Product/Project: the stone they asked about, or the project they named.
   const subject = stone ?? enquiry.projectName;
@@ -54,9 +37,7 @@ function buildEnquiryAlert(enquiry) {
   if (s.requiredBy) lines.push(`Required Delivery: ${s.requiredBy}`);
   if (s.material) lines.push(`Material: ${s.material}`);
 
-  lines.push(
-    `Customer contact: ${formatContact(enquiry.phone, enquiry.email)}`,
-  );
+  lines.push(`Customer contact: ${formatContact(enquiry.phone, enquiry.email)}`);
 
   if (enquiry.message) lines.push(``, `"${enquiry.message}"`);
 

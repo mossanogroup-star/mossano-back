@@ -4,6 +4,33 @@ import { storage } from "../../utils/storage/index.js";
 const SRCSET_WIDTHS = [400, 800, 1200, 2000];
 
 /**
+ * The standard widths, plus the image's own.
+ *
+ * Without that last entry a 1420px slab tops out at the 1200px rendition, and a
+ * full-bleed hero on a retina screen upscales it needlessly — throwing away
+ * detail that is actually present in the file. These images are recovered from
+ * the client's PDFs and are small to begin with, so every real pixel counts.
+ *
+ * Nothing is ever generated above the native width: Cloudinary would happily
+ * serve a 2000px version of an 875px file, and it would only be blur.
+ */
+function buildSrcset(doc, options = {}) {
+  const widths = SRCSET_WIDTHS.filter((w) => !doc.width || w < doc.width);
+  if (doc.width) widths.push(doc.width);
+
+  return [...new Set(widths)]
+    .sort((a, b) => a - b)
+    .map((width) => ({
+      width,
+      url:
+        storage.derive(doc.storageKey, doc.resourceType, {
+          width,
+          ...options,
+        }) || doc.url,
+    }));
+}
+
+/**
  * A media document as the API returns it.
  *
  * `srcset` is built here rather than in the browser because only the server
@@ -31,16 +58,7 @@ function toMediaDto(doc) {
     height: doc.height ?? null,
     bytes: doc.bytes ?? null,
     createdAt: doc.createdAt,
-    srcset: isImage
-      ? SRCSET_WIDTHS.filter((w) => !doc.width || w <= doc.width * 1.2).map(
-          (width) => ({
-            width,
-            url:
-              storage.derive(doc.storageKey, doc.resourceType, { width }) ||
-              doc.url,
-          }),
-        )
-      : [],
+    srcset: isImage ? buildSrcset(doc) : [],
   };
 }
 
@@ -55,4 +73,27 @@ function toMediaOptionDto(doc) {
   };
 }
 
-export { toMediaDto, toMediaOptionDto, SRCSET_WIDTHS };
+/**
+ * The same image, prepared for a full-bleed hero: backdrop borders trimmed.
+ *
+ * Kept separate from toMediaDto because the trim only earns its cost where the
+ * image runs edge to edge. On a card the border is a few pixels nobody notices,
+ * and trimming everywhere would generate a second set of renditions across the
+ * whole catalogue for no visible gain.
+ */
+function toHeroMediaDto(doc) {
+  const base = toMediaDto(doc);
+  if (!base || doc.resourceType === "video") return base;
+
+  return {
+    ...base,
+    url:
+      storage.derive(doc.storageKey, doc.resourceType, {
+        width: doc.width,
+        trim: true,
+      }) || base.url,
+    srcset: buildSrcset(doc, { trim: true }),
+  };
+}
+
+export { toMediaDto, toHeroMediaDto, toMediaOptionDto, SRCSET_WIDTHS };

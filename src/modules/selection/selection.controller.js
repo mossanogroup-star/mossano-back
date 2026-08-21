@@ -39,10 +39,7 @@ const update = asyncHandler(async (req, res) => {
 });
 
 const revoke = asyncHandler(async (req, res) => {
-  const selection = await selectionService.revoke(
-    req.validated.params.id,
-    req.user,
-  );
+  const selection = await selectionService.revoke(req.validated.params.id, req.user);
   return sendSuccess(res, {
     message: "Link revoked — the customer can no longer open it",
     data: toAdminSelectionDto(selection),
@@ -50,10 +47,7 @@ const revoke = asyncHandler(async (req, res) => {
 });
 
 const restore = asyncHandler(async (req, res) => {
-  const selection = await selectionService.restore(
-    req.validated.params.id,
-    req.user,
-  );
+  const selection = await selectionService.restore(req.validated.params.id, req.user);
   return sendSuccess(res, {
     message: "Link restored",
     data: toAdminSelectionDto(selection),
@@ -61,10 +55,7 @@ const restore = asyncHandler(async (req, res) => {
 });
 
 const regenerateLink = asyncHandler(async (req, res) => {
-  const selection = await selectionService.regenerateLink(
-    req.validated.params.id,
-    req.user,
-  );
+  const selection = await selectionService.regenerateLink(req.validated.params.id, req.user);
   return sendSuccess(res, {
     message: "New link issued — the previous one no longer works",
     data: toAdminSelectionDto(selection),

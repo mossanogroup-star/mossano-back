@@ -13,22 +13,15 @@ async function authenticate(req, _res, next) {
     const [scheme, token] = (req.headers.authorization || "").split(" ");
 
     if (scheme !== "Bearer" || !token) {
-      return next(
-        new AppError("No token provided", 401, { code: "UNAUTHORIZED" }),
-      );
+      return next(new AppError("No token provided", 401, { code: "UNAUTHORIZED" }));
     }
 
     const payload = jwt.verify(token, env.JWT_ACCESS_SECRET);
     const user = await userRepository.findById(payload.sub);
 
-    if (!user)
-      return next(
-        new AppError("User not found", 401, { code: "UNAUTHORIZED" }),
-      );
+    if (!user) return next(new AppError("User not found", 401, { code: "UNAUTHORIZED" }));
     if (!user.isActive) {
-      return next(
-        new AppError("Account is disabled", 403, { code: "FORBIDDEN" }),
-      );
+      return next(new AppError("Account is disabled", 403, { code: "FORBIDDEN" }));
     }
 
     req.user = {

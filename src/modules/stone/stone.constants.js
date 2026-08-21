@@ -1,15 +1,10 @@
 /**
  * The catalogue's fixed vocabularies.
  *
- * Looks and applications are transcribed verbatim from the requirement
- * documents — they are the client's own words, and the Website document's
- * §7 note "keep it same as back end comments" means the two lists must not
- * drift apart. They live in code rather than in a collection because adding
- * a Look is a design decision (each one needs its own photography and
- * landing treatment), not a data-entry one.
- *
- * Materials, colours and finishes are marked below: the requirement documents
- * name them as filters but never enumerate them. See docs/CLIENT-QUESTIONS.md.
+ * Looks and applications are the client's own words, in code rather than a
+ * collection because adding one is a design decision, not data entry.
+ * Materials, colours and finishes are named as filters by the requirement
+ * documents but never enumerated — see docs/CLIENT-QUESTIONS.md.
  */
 
 /** Admin & Backend Scope §2. The whole site keys off this one field. */
@@ -108,8 +103,7 @@ const MATERIAL_SLUGS = slugsOf(MATERIALS);
 const COLOUR_SLUGS = slugsOf(COLOURS);
 const FINISH_SLUGS = slugsOf(FINISHES);
 
-const labelOf = (list, slug) =>
-  list.find((x) => x.slug === slug)?.label ?? null;
+const labelOf = (list, slug) => list.find((x) => x.slug === slug)?.label ?? null;
 
 export {
   AVAILABILITY,

@@ -37,14 +37,7 @@ const ENQUIRY_TYPE_LABELS = {
  * Without it a lead that went nowhere has no resting place and sits in the
  * inbox forever, which is how a team stops trusting the inbox.
  */
-const ENQUIRY_STATUSES = [
-  "new",
-  "contacted",
-  "interested",
-  "reserved",
-  "purchased",
-  "closed",
-];
+const ENQUIRY_STATUSES = ["new", "contacted", "interested", "reserved", "purchased", "closed"];
 
 const ENQUIRY_STATUS_LABELS = {
   new: "New",
@@ -56,26 +49,14 @@ const ENQUIRY_STATUS_LABELS = {
 };
 
 /** The pipeline as the admin renders it, in order. `closed` sits outside it. */
-const ENQUIRY_PIPELINE = [
-  "new",
-  "contacted",
-  "interested",
-  "reserved",
-  "purchased",
-];
+const ENQUIRY_PIPELINE = ["new", "contacted", "interested", "reserved", "purchased"];
 
 /**
  * Which types are urgent. A reservation request against a lot that may sell
  * this afternoon is not the same as a general "tell me more", and the admin
  * dashboard sorts on this.
  */
-const HIGH_INTENT_TYPES = [
-  "reserve",
-  "prebook",
-  "selection",
-  "sourcing",
-  "chatbot",
-];
+const HIGH_INTENT_TYPES = ["reserve", "prebook", "selection", "sourcing", "chatbot"];
 
 export {
   ENQUIRY_TYPES,

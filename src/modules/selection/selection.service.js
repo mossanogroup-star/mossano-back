@@ -64,9 +64,7 @@ const selectionService = {
       publishedOnly: false,
     });
 
-    const noteById = new Map(
-      (selection.items ?? []).map((i) => [String(i.stone), i.note ?? null]),
-    );
+    const noteById = new Map((selection.items ?? []).map((i) => [String(i.stone), i.note ?? null]));
     return stones.map((stone) => ({
       stone,
       note: noteById.get(String(stone._id)) ?? null,
@@ -85,22 +83,16 @@ const selectionService = {
       // seeing their selection.
       selectionRepository
         .recordView(selection._id)
-        .catch((err) =>
-          logger.warn({ err }, "Could not record selection view"),
-        );
+        .catch((err) => logger.warn({ err }, "Could not record selection view"));
       return selection;
     }
 
     const any = await selectionRepository.findAnyByToken(token);
     if (!any) throw new AppError("This selection link is not valid", 404);
     if (any.isRevoked) {
-      throw new AppError(
-        "This selection is no longer being shared. Contact MOSSANO.",
-        410,
-        {
-          code: "SELECTION_REVOKED",
-        },
-      );
+      throw new AppError("This selection is no longer being shared. Contact MOSSANO.", 410, {
+        code: "SELECTION_REVOKED",
+      });
     }
     if (any.expiresAt && any.expiresAt <= new Date()) {
       throw new AppError(
@@ -123,9 +115,7 @@ const selectionService = {
     patch.reference = await nextReference("selection", "MM-S");
 
     if (patch.expiresAt === undefined && env.SELECTION_LINK_TTL_DAYS) {
-      patch.expiresAt = new Date(
-        Date.now() + env.SELECTION_LINK_TTL_DAYS * 24 * 60 * 60 * 1000,
-      );
+      patch.expiresAt = new Date(Date.now() + env.SELECTION_LINK_TTL_DAYS * 24 * 60 * 60 * 1000);
     }
 
     const created = await selectionRepository.create({
@@ -180,9 +170,7 @@ const selectionService = {
       token,
       isRevoked: false,
       expiresAt: env.SELECTION_LINK_TTL_DAYS
-        ? new Date(
-            Date.now() + env.SELECTION_LINK_TTL_DAYS * 24 * 60 * 60 * 1000,
-          )
+        ? new Date(Date.now() + env.SELECTION_LINK_TTL_DAYS * 24 * 60 * 60 * 1000)
         : undefined,
       updatedBy: user?.id,
     });

@@ -70,9 +70,7 @@ const editService = {
 
   async create(body, user) {
     const patch = buildPatch(body);
-    patch.slug = await uniqueSlug(body.title, (s) =>
-      editRepository.slugExists(s),
-    );
+    patch.slug = await uniqueSlug(body.title, (s) => editRepository.slugExists(s));
 
     const created = await editRepository.create({
       ...patch,
@@ -112,8 +110,7 @@ const editService = {
    * leaves the site briefly showing two Current Edits or none.
    */
   async setStatus(id, status, user) {
-    if (!EDIT_STATUSES.includes(status))
-      throw new AppError("Unknown status", 400);
+    if (!EDIT_STATUSES.includes(status)) throw new AppError("Unknown status", 400);
 
     const edit = await editRepository.findById(id);
     if (!edit) throw new AppError("Edit not found", 404);
@@ -136,10 +133,7 @@ const editService = {
     if (!edit) throw new AppError("Edit not found", 404);
 
     const existing = (edit.stones ?? []).map(String);
-    const merged = [
-      ...existing,
-      ...stoneIds.map(String).filter((s) => !existing.includes(s)),
-    ];
+    const merged = [...existing, ...stoneIds.map(String).filter((s) => !existing.includes(s))];
 
     const updated = await editRepository.findByIdAndSave(id, {
       stones: merged,

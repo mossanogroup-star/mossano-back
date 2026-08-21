@@ -1,15 +1,8 @@
 /**
- * Email to the executive — the cheaper route to the same outcome.
- *
- * The client asked for an automatic WhatsApp to the executive. That needs a Meta
- * Business account, a dedicated number, template approval and per-message
- * billing (see whatsappProvider.js). This does the same job with none of it:
- * the alert arrives as email, and the "Reply on WhatsApp" link inside it opens
- * the *customer's* chat with a greeting already written.
- *
- * The executive taps once instead of zero times. That is the whole difference,
- * and it is worth putting to the client before committing to the Business API —
- * docs/CLIENT-QUESTIONS.md §12.
+ * Email to the executive — the same outcome without a Meta account, template
+ * approval or per-message billing. The alert carries a "Reply on WhatsApp"
+ * link that opens the customer's chat pre-written, so the executive taps once
+ * instead of zero times. See docs/CLIENT-QUESTIONS.md §12.
  */
 import { env } from "../../config/env.js";
 import { logger } from "../../config/logger.js";
@@ -47,9 +40,7 @@ const emailProvider = {
   name: "email",
 
   get isConfigured() {
-    return Boolean(
-      env.SMTP_HOST && env.SMTP_USER && env.SMTP_PASS && env.EXECUTIVE_EMAIL,
-    );
+    return Boolean(env.SMTP_HOST && env.SMTP_USER && env.SMTP_PASS && env.EXECUTIVE_EMAIL);
   },
 
   async send({ text, subject, enquiry }) {

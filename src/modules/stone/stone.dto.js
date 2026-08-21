@@ -31,8 +31,7 @@ function verifiedLabel(lastVerifiedAt) {
   const hours = Math.floor((Date.now() - then) / 3_600_000);
 
   if (hours < 1) return "Availability verified in the last hour";
-  if (hours < 24)
-    return `Availability verified ${hours} hour${hours === 1 ? "" : "s"} ago`;
+  if (hours < 24) return `Availability verified ${hours} hour${hours === 1 ? "" : "s"} ago`;
 
   const days = Math.floor(hours / 24);
   if (days === 1) return "Availability verified yesterday";
@@ -47,10 +46,7 @@ const VERIFIED_FRESH_HOURS = 48;
 
 function isVerificationFresh(lastVerifiedAt) {
   if (!lastVerifiedAt) return false;
-  return (
-    Date.now() - new Date(lastVerifiedAt).getTime() <
-    VERIFIED_FRESH_HOURS * 3_600_000
-  );
+  return Date.now() - new Date(lastVerifiedAt).getTime() < VERIFIED_FRESH_HOURS * 3_600_000;
 }
 
 /**
@@ -88,9 +84,7 @@ function buildSpecs(doc) {
     },
     {
       label: "Approximate area",
-      value: doc.areaSqFt
-        ? `${doc.areaSqFt.toLocaleString("en-IN")} sq ft`
-        : ON_REQUEST,
+      value: doc.areaSqFt ? `${doc.areaSqFt.toLocaleString("en-IN")} sq ft` : ON_REQUEST,
     },
   ];
 }
@@ -140,16 +134,13 @@ function toPublicStoneDto(doc) {
     })),
 
     availability: doc.availability,
-    availabilityLabel:
-      AVAILABILITY_LABELS[doc.availability] ?? doc.availability,
+    availabilityLabel: AVAILABILITY_LABELS[doc.availability] ?? doc.availability,
     isReservable: RESERVABLE_AVAILABILITY.includes(doc.availability),
     lastVerifiedAt: doc.lastVerifiedAt ?? null,
     verifiedLabel: verifiedLabel(doc.lastVerifiedAt),
     isVerificationFresh: isVerificationFresh(doc.lastVerifiedAt),
     /** Website §2's "MOSSANO verified lot" badge — earned, not decorative. */
-    isVerifiedLot:
-      doc.availability === "available" &&
-      isVerificationFresh(doc.lastVerifiedAt),
+    isVerifiedLot: doc.availability === "available" && isVerificationFresh(doc.lastVerifiedAt),
 
     description: doc.description || "",
     specs: buildSpecs(doc),
@@ -196,12 +187,9 @@ function toStoneCardDto(doc) {
     origin: doc.origin ?? null,
     colour: doc.colour ?? null,
     availability: doc.availability,
-    availabilityLabel:
-      AVAILABILITY_LABELS[doc.availability] ?? doc.availability,
+    availabilityLabel: AVAILABILITY_LABELS[doc.availability] ?? doc.availability,
     isReservable: RESERVABLE_AVAILABILITY.includes(doc.availability),
-    isVerifiedLot:
-      doc.availability === "available" &&
-      isVerificationFresh(doc.lastVerifiedAt),
+    isVerifiedLot: doc.availability === "available" && isVerificationFresh(doc.lastVerifiedAt),
     verifiedLabel: verifiedLabel(doc.lastVerifiedAt),
     slabCount: doc.slabCount ?? null,
     areaSqFt: doc.areaSqFt ?? null,

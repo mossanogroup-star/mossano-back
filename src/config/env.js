@@ -36,22 +36,15 @@ const env = Object.freeze({
 
   // --- Storefront ---
   // Resolved to an absolute path so nodemon's cwd can never change what we read.
-  FRONTEND_DIR: path.resolve(
-    BACK_ROOT,
-    process.env.FRONTEND_DIR || "../mossano-front",
-  ),
+  FRONTEND_DIR: path.resolve(BACK_ROOT, process.env.FRONTEND_DIR || "../mossano-front"),
   PUBLIC_BASE_URL: (process.env.PUBLIC_BASE_URL || `http://localhost:${PORT}`)
     .trim()
     .replace(/\/+$/, ""),
   CORS_ORIGIN: process.env.CORS_ORIGIN || "",
-  SSR_CACHE_TTL_SECONDS: Math.max(
-    0,
-    Number(process.env.SSR_CACHE_TTL_SECONDS || 300),
-  ),
+  SSR_CACHE_TTL_SECONDS: Math.max(0, Number(process.env.SSR_CACHE_TTL_SECONDS || 300)),
 
   // --- Media ---
-  STORAGE_PROVIDER:
-    (process.env.STORAGE_PROVIDER || "").trim().toLowerCase() || "",
+  STORAGE_PROVIDER: (process.env.STORAGE_PROVIDER || "").trim().toLowerCase() || "",
   CLOUDINARY_CLOUD_NAME,
   CLOUDINARY_API_KEY,
   CLOUDINARY_API_SECRET,
@@ -61,25 +54,18 @@ const env = Object.freeze({
   CLOUDINARY_FOLDER: process.env.CLOUDINARY_FOLDER || "mossano",
   UPLOAD_ROOT: path.resolve(BACK_ROOT, "uploads"),
   MAX_UPLOAD_MB: Math.max(1, Number(process.env.MAX_UPLOAD_MB || 10)),
-  MAX_VIDEO_UPLOAD_MB: Math.max(
-    1,
-    Number(process.env.MAX_VIDEO_UPLOAD_MB || 100),
-  ),
+  MAX_VIDEO_UPLOAD_MB: Math.max(1, Number(process.env.MAX_VIDEO_UPLOAD_MB || 100)),
 
   // --- WhatsApp ---
   // Digits only, country code included. Every wa.me link the site emits — from
   // Home, Stone Detail, Private Sourcing, Private Selection and Contact —
   // points here, so it is configuration rather than a constant in the markup.
-  WHATSAPP_NUMBER: (process.env.WHATSAPP_NUMBER || "919619176132").replace(
-    /\D/g,
-    "",
-  ),
+  WHATSAPP_NUMBER: (process.env.WHATSAPP_NUMBER || "919619176132").replace(/\D/g, ""),
 
   // --- Alerting the team when an enquiry arrives ---
   // "Backend automatically → Executive ko WhatsApp" (Website Notes, 2nd drop).
   // Leave NOTIFY_PROVIDER empty to auto-select; see utils/notify/index.js.
-  NOTIFY_PROVIDER:
-    (process.env.NOTIFY_PROVIDER || "").trim().toLowerCase() || "",
+  NOTIFY_PROVIDER: (process.env.NOTIFY_PROVIDER || "").trim().toLowerCase() || "",
   /** Where alerts go. Digits with country code, e.g. 919619176132. */
   EXECUTIVE_WHATSAPP: (process.env.EXECUTIVE_WHATSAPP || "").replace(/\D/g, ""),
   EXECUTIVE_EMAIL: process.env.EXECUTIVE_EMAIL || "",
@@ -99,10 +85,20 @@ const env = Object.freeze({
   SMTP_PASS: process.env.SMTP_PASS || "",
   SMTP_FROM: process.env.SMTP_FROM || "",
 
-  SELECTION_LINK_TTL_DAYS: Math.max(
-    1,
-    Number(process.env.SELECTION_LINK_TTL_DAYS || 90),
-  ),
+  /**
+   * The slab on the home page, by MOSSANO code.
+   *
+   * Pinned rather than derived. Left to sort order, the hero changed whenever
+   * the team touched stock — marking a lot Available moved it to the front of
+   * the featured list and it became the front page, and a lot *selling* pushed
+   * a different slab up. The brand's strongest statement should not move as a
+   * side effect of inventory work.
+   *
+   * Empty falls straight through to the ranked fallback in public.service.js.
+   */
+  HERO_STONE_CODE: (process.env.HERO_STONE_CODE || "MM-013").trim().toUpperCase(),
+
+  SELECTION_LINK_TTL_DAYS: Math.max(1, Number(process.env.SELECTION_LINK_TTL_DAYS || 90)),
 });
 
 export { env, BACK_ROOT };

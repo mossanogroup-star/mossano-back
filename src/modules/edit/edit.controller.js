@@ -26,11 +26,7 @@ const create = asyncHandler(async (req, res) => {
 });
 
 const update = asyncHandler(async (req, res) => {
-  const edit = await editService.update(
-    req.validated.params.id,
-    req.validated.body,
-    req.user,
-  );
+  const edit = await editService.update(req.validated.params.id, req.validated.body, req.user);
   return sendSuccess(res, {
     message: "Edit updated",
     data: toAdminEditDto(edit),

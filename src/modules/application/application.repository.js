@@ -1,9 +1,5 @@
 import { ApplicationModel } from "./application.model.js";
-import {
-  escapeRegex,
-  runPagedQuery,
-  softDeleteById,
-} from "../../utils/repositoryHelpers.js";
+import { escapeRegex, runPagedQuery, softDeleteById } from "../../utils/repositoryHelpers.js";
 
 const POPULATE = [
   {
@@ -16,14 +12,7 @@ const POPULATE = [
   },
 ];
 
-function buildFilter({
-  application,
-  search,
-  featured,
-  publishedOnly,
-  includeDeleted,
-  stoneId,
-}) {
+function buildFilter({ application, search, featured, publishedOnly, includeDeleted, stoneId }) {
   const filter = {};
   if (!includeDeleted) filter.isDeleted = false;
   if (publishedOnly) filter.isPublished = true;
@@ -33,12 +22,7 @@ function buildFilter({
 
   if (search?.trim()) {
     const rx = new RegExp(escapeRegex(search.trim()), "i");
-    filter.$or = [
-      { title: rx },
-      { projectName: rx },
-      { location: rx },
-      { architect: rx },
-    ];
+    filter.$or = [{ title: rx }, { projectName: rx }, { location: rx }, { architect: rx }];
   }
   return filter;
 }
@@ -56,9 +40,7 @@ const applicationRepository = {
   },
 
   findById: (id) =>
-    ApplicationModel.findOne({ _id: id, isDeleted: false })
-      .populate(POPULATE)
-      .lean(),
+    ApplicationModel.findOne({ _id: id, isDeleted: false }).populate(POPULATE).lean(),
 
   findBySlug: (slug, { publishedOnly = true } = {}) =>
     ApplicationModel.findOne({
@@ -107,9 +89,7 @@ const applicationRepository = {
     ]),
 
   allPublishedSlugs: () =>
-    ApplicationModel.find({ isDeleted: false, isPublished: true })
-      .select("slug updatedAt")
-      .lean(),
+    ApplicationModel.find({ isDeleted: false, isPublished: true }).select("slug updatedAt").lean(),
 };
 
 export { applicationRepository };

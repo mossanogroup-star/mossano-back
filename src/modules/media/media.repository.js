@@ -1,9 +1,5 @@
 import { MediaModel } from "./media.model.js";
-import {
-  escapeRegex,
-  runPagedQuery,
-  softDeleteById,
-} from "../../utils/repositoryHelpers.js";
+import { escapeRegex, runPagedQuery, softDeleteById } from "../../utils/repositoryHelpers.js";
 
 function buildFilter({ kind, search }) {
   const filter = { isDeleted: false };
@@ -33,8 +29,7 @@ const mediaRepository = {
    * caller's job — Mongo returns these in whatever order it likes, and a slab
    * gallery whose order shuffles between requests looks broken.
    */
-  findManyByIds: (ids) =>
-    MediaModel.find({ _id: { $in: ids || [] }, isDeleted: false }).lean(),
+  findManyByIds: (ids) => MediaModel.find({ _id: { $in: ids || [] }, isDeleted: false }).lean(),
 
   create: (data) => MediaModel.create(data),
 

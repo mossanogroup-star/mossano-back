@@ -1,9 +1,5 @@
 import { EditModel } from "./edit.model.js";
-import {
-  escapeRegex,
-  runPagedQuery,
-  softDeleteById,
-} from "../../utils/repositoryHelpers.js";
+import { escapeRegex, runPagedQuery, softDeleteById } from "../../utils/repositoryHelpers.js";
 
 const POPULATE = [
   {
@@ -16,13 +12,7 @@ const POPULATE = [
   },
 ];
 
-function buildFilter({
-  status,
-  search,
-  publishedOnly,
-  includeArchived,
-  includeDeleted,
-}) {
+function buildFilter({ status, search, publishedOnly, includeArchived, includeDeleted }) {
   const filter = {};
   if (!includeDeleted) filter.isDeleted = false;
   if (publishedOnly) filter.isPublished = true;
@@ -48,8 +38,7 @@ const editRepository = {
     });
   },
 
-  findById: (id) =>
-    EditModel.findOne({ _id: id, isDeleted: false }).populate(POPULATE).lean(),
+  findById: (id) => EditModel.findOne({ _id: id, isDeleted: false }).populate(POPULATE).lean(),
 
   findBySlug: (slug, { publishedOnly = true } = {}) =>
     EditModel.findOne({
@@ -103,16 +92,12 @@ const editRepository = {
 
   /** Every Edit a stone belongs to — used when a stone is deleted. */
   findContainingStone: (stoneId) =>
-    EditModel.find({ stones: stoneId, isDeleted: false })
-      .select("title slug status")
-      .lean(),
+    EditModel.find({ stones: stoneId, isDeleted: false }).select("title slug status").lean(),
 
   softDelete: (id) => softDeleteById(EditModel, id),
 
   allPublishedSlugs: () =>
-    EditModel.find({ isDeleted: false, isPublished: true })
-      .select("slug updatedAt")
-      .lean(),
+    EditModel.find({ isDeleted: false, isPublished: true }).select("slug updatedAt").lean(),
 };
 
 export { editRepository };

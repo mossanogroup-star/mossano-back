@@ -24,10 +24,7 @@ const get = asyncHandler(async (req, res) => {
 });
 
 const create = asyncHandler(async (req, res) => {
-  const application = await applicationService.create(
-    req.validated.body,
-    req.user,
-  );
+  const application = await applicationService.create(req.validated.body, req.user);
   return sendSuccess(res, {
     statusCode: 201,
     message: `${application.title} added`,

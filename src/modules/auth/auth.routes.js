@@ -7,12 +7,7 @@ import { loginRateLimit } from "../../middlewares/rateLimit.js";
 
 const router = Router();
 
-router.post(
-  "/login",
-  loginRateLimit,
-  validateRequest(loginSchema),
-  authController.login,
-);
+router.post("/login", loginRateLimit, validateRequest(loginSchema), authController.login);
 
 router.get("/me", authenticate, authController.me);
 router.post(

@@ -17,7 +17,6 @@ const setStatus = asyncHandler(async (req, res) => {
   const enquiry = await enquiryService.setStatus(
     req.validated.params.id,
     req.validated.body.status,
-    req.user,
   );
   return sendSuccess(res, {
     message: "Status updated",
@@ -26,10 +25,7 @@ const setStatus = asyncHandler(async (req, res) => {
 });
 
 const update = asyncHandler(async (req, res) => {
-  const enquiry = await enquiryService.update(
-    req.validated.params.id,
-    req.validated.body,
-  );
+  const enquiry = await enquiryService.update(req.validated.params.id, req.validated.body);
   return sendSuccess(res, {
     message: "Enquiry updated",
     data: toEnquiryDto(enquiry),
