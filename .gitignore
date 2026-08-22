@@ -17,3 +17,7 @@ coverage
 .vscode
 .idea
 .DS_Store
+
+# The frontend, cloned at build time on Render so this service can render the
+# storefront. See render.yaml.
+.frontend

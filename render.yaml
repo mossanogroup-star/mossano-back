@@ -1,0 +1,57 @@
+# One service: API, admin panel, and the server-rendered storefront.
+
+services:
+  - type: web
+    name: mossano-back
+    runtime: node
+    plan: starter
+    region: singapore
+    branch: main
+
+    # Clones mossano-front because this service renders the storefront from its
+    # build output and the two are separate repos. A broken commit on the
+    # front's main branch will fail this deploy.
+    buildCommand: >
+      npm ci &&
+      rm -rf .frontend &&
+      git clone --depth 1 https://github.com/mossanogroup-star/mossano-front.git .frontend &&
+      npm --prefix .frontend ci &&
+      npm --prefix .frontend run build
+
+    startCommand: npm start
+    healthCheckPath: /health
+
+    envVars:
+      # Anything else starts Vite in middleware mode, which rejects unknown
+      # hosts — the "Blocked request" page.
+      - key: NODE_ENV
+        value: production
+
+      - key: FRONTEND_DIR
+        value: ./.frontend
+
+      # Must match the real hostname: og:url, canonical tags and private
+      # selection links are built from it.
+      - key: PUBLIC_BASE_URL
+        value: https://mossano-back.onrender.com
+
+      - key: HERO_STONE_CODE
+        value: MM-001
+      - key: WHATSAPP_NUMBER
+        value: "919619176132"
+
+      # Set in the Render dashboard.
+      - key: MONGODB_URI
+        sync: false
+      - key: JWT_ACCESS_SECRET
+        sync: false
+      - key: SEED_ADMIN_EMAIL
+        sync: false
+      - key: SEED_ADMIN_PASSWORD
+        sync: false
+      - key: CLOUDINARY_CLOUD_NAME
+        sync: false
+      - key: CLOUDINARY_API_KEY
+        sync: false
+      - key: CLOUDINARY_API_SECRET
+        sync: false
