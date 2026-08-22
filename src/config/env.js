@@ -86,17 +86,24 @@ const env = Object.freeze({
   SMTP_FROM: process.env.SMTP_FROM || "",
 
   /**
-   * The slab on the home page, by MOSSANO code.
+   * The slab behind the home page's wordmark, by MOSSANO code.
    *
-   * Pinned rather than derived. Left to sort order, the hero changed whenever
-   * the team touched stock — marking a lot Available moved it to the front of
-   * the featured list and it became the front page, and a lot *selling* pushed
-   * a different slab up. The brand's strongest statement should not move as a
-   * side effect of inventory work.
+   * Pinned rather than derived, for two reasons.
    *
-   * Empty falls straight through to the ranked fallback in public.service.js.
+   * Left to sort order it moved as a side effect of inventory work — marking a
+   * lot Available pushed it to the front of the featured list and it became the
+   * front page. The brand's strongest statement should not change because
+   * someone updated stock.
+   *
+   * And the choice is a measurement, not a preference. `npm run measure:hero`
+   * scores every published lot on how readable ivory type is over the band the
+   * text actually occupies. MM-001 Black Marquina wins by a distance — 21.7
+   * against 101 for the runner-up, and 157 for the lot the ranked fallback had
+   * been choosing. Over a pale slab the wordmark simply disappears.
+   *
+   * Empty falls through to that ranked fallback in public.service.js.
    */
-  HERO_STONE_CODE: (process.env.HERO_STONE_CODE || "MM-013").trim().toUpperCase(),
+  HERO_STONE_CODE: (process.env.HERO_STONE_CODE || "MM-001").trim().toUpperCase(),
 
   SELECTION_LINK_TTL_DAYS: Math.max(1, Number(process.env.SELECTION_LINK_TTL_DAYS || 90)),
 });

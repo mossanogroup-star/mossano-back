@@ -14,9 +14,23 @@ const SRCSET_WIDTHS = [400, 800, 1200, 2000];
  * Nothing is ever generated above the native width: Cloudinary would happily
  * serve a 2000px version of an 875px file, and it would only be blur.
  */
+/** Retina widths a full-bleed hero actually needs. */
+const HERO_UPSCALE_WIDTHS = [1920, 2560, 2880];
+
 function buildSrcset(doc, options = {}) {
+  const { upscaleTo, ...deriveOptions } = options;
+
   const widths = SRCSET_WIDTHS.filter((w) => !doc.width || w < doc.width);
   if (doc.width) widths.push(doc.width);
+
+  // Renditions larger than the source, for the hero. Anything at or below the
+  // source width is served normally; only the ones that would otherwise be a
+  // plain stretch get the AI upscale.
+  if (upscaleTo && doc.width) {
+    HERO_UPSCALE_WIDTHS.filter((w) => w > doc.width && w <= upscaleTo).forEach((w) =>
+      widths.push(w),
+    );
+  }
 
   return [...new Set(widths)]
     .sort((a, b) => a - b)
@@ -25,7 +39,8 @@ function buildSrcset(doc, options = {}) {
       url:
         storage.derive(doc.storageKey, doc.resourceType, {
           width,
-          ...options,
+          ...deriveOptions,
+          upscale: Boolean(doc.width && width > doc.width),
         }) || doc.url,
     }));
 }
@@ -92,7 +107,7 @@ function toHeroMediaDto(doc) {
         width: doc.width,
         trim: true,
       }) || base.url,
-    srcset: buildSrcset(doc, { trim: true }),
+    srcset: buildSrcset(doc, { trim: true, upscaleTo: 2880 }),
   };
 }
 

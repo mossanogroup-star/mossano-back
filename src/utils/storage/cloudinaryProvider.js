@@ -76,7 +76,11 @@ const cloudinaryProvider = {
    * Build a delivery URL at a given width. This is why one upload is enough:
    * the storefront asks for the size it needs at render time.
    */
-  derive(storageKey, resourceType = "image", { width, height, crop = "limit", trim = false } = {}) {
+  derive(
+    storageKey,
+    resourceType = "image",
+    { width, height, crop = "limit", trim = false, upscale = false } = {},
+  ) {
     if (!env.CLOUDINARY_CONFIGURED || !storageKey) return null;
     return cloudinary.url(storageKey, {
       resource_type: resourceType,
@@ -91,6 +95,19 @@ const cloudinaryProvider = {
         // where 35 left a column behind and 55 began eating into the stone.
         // Applied at delivery, so the stored original is never degraded.
         ...(trim ? [{ effect: "trim:45" }] : []),
+        // AI super-resolution, for the hero only.
+        //
+        // Every slab here was recovered from a PDF catalogue, and the pages top
+        // out around 1389px — the crop is not discarding anything, that is
+        // simply all the source contains. A full-bleed hero on a 1440px retina
+        // display wants 2880px, so a plain scale-up softens every vein.
+        //
+        // e_upscale takes the 1326px Black Marquina to 5304px, and the veins
+        // come back with clean edges rather than blurred ones. It is deliberately
+        // not applied to cards: they never exceed the source width, so it would
+        // be cost with no benefit. The real fix remains the photographer's
+        // originals — docs/CLIENT-QUESTIONS.md §5.
+        ...(upscale ? [{ effect: "upscale" }] : []),
         { width, height, crop },
         { quality: "auto", fetch_format: "auto" },
       ],
