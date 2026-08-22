@@ -11,11 +11,16 @@ services:
     # Clones mossano-front because this service renders the storefront from its
     # build output and the two are separate repos. A broken commit on the
     # front's main branch will fail this deploy.
+    #
+    # --include=dev on the frontend only: NODE_ENV=production makes npm omit
+    # devDependencies, and vite, typescript and @types/* all live there, so the
+    # build has nothing to build with. The back needs no such flag — its one
+    # vite import is dynamic and dev-only.
     buildCommand: >
       npm ci &&
       rm -rf .frontend &&
       git clone --depth 1 https://github.com/mossanogroup-star/mossano-front.git .frontend &&
-      npm --prefix .frontend ci &&
+      npm --prefix .frontend ci --include=dev &&
       npm --prefix .frontend run build
 
     startCommand: npm start
