@@ -29,6 +29,39 @@ function assertWithinLimit(file) {
   }
 }
 
+/**
+ * Asks Cloudinary what `e_trim` would actually leave behind.
+ *
+ * Anything under 60% of the original width means the trim has eaten the stone
+ * rather than the border — see Media.trimSafe. One extra request per upload,
+ * and only for Cloudinary images.
+ */
+async function isTrimSafe(stored) {
+  if (stored.provider !== "cloudinary" || stored.resourceType !== "image") return true;
+  if (!stored.width) return true;
+
+  try {
+    const url = storage
+      .derive(stored.storageKey, stored.resourceType, { width: stored.width, trim: true })
+      .replace("/image/upload/", "/image/upload/fl_getinfo/");
+    const info = await fetch(url).then((r) => (r.ok ? r.json() : null));
+    const trimmedWidth = info?.output?.width;
+    if (!trimmedWidth) return true;
+
+    const safe = trimmedWidth >= stored.width * 0.6;
+    if (!safe) {
+      logger.info(
+        { storageKey: stored.storageKey, from: stored.width, to: trimmedWidth },
+        "Trim would remove most of this image — it will be served untrimmed",
+      );
+    }
+    return safe;
+  } catch {
+    // A probe failure must not fail the upload. Trimming is cosmetic.
+    return true;
+  }
+}
+
 const mediaService = {
   list(query) {
     return mediaRepository.findMany(query);
@@ -59,6 +92,7 @@ const mediaService = {
     });
 
     return mediaRepository.create({
+      trimSafe: await isTrimSafe(stored),
       filename: file.originalname,
       mimeType: file.mimetype,
       kind: resolvedKind,

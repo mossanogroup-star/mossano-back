@@ -105,9 +105,10 @@ function toHeroMediaDto(doc) {
     url:
       storage.derive(doc.storageKey, doc.resourceType, {
         width: doc.width,
-        trim: true,
+        trim: doc.trimSafe !== false,
       }) || base.url,
-    srcset: buildSrcset(doc, { trim: true, upscaleTo: 2880 }),
+    // trim only where it is safe for this image — see Media.trimSafe.
+    srcset: buildSrcset(doc, { trim: doc.trimSafe !== false, upscaleTo: 2880 }),
   };
 }
 

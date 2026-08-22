@@ -1,7 +1,7 @@
 {
   "name": "mossano-back",
   "version": "1.0.0",
-  "description": "MOSSANO MARMO \u2014 API, admin backend and server-rendered storefront",
+  "description": "MOSSANO MARMO — API, admin backend and server-rendered storefront",
   "main": "server.js",
   "type": "module",
   "scripts": {
@@ -13,7 +13,8 @@
     "format": "prettier --write .",
     "validate": "npm run lint && npm run format:check",
     "prune:media": "node scripts/pruneOrphanMedia.js",
-    "format:check": "prettier --check ."
+    "format:check": "prettier --check .",
+    "measure:hero": "node scripts/measureHeroLegibility.js"
   },
   "dependencies": {
     "bcryptjs": "^3.0.2",

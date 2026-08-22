@@ -44,12 +44,9 @@ if (providerName === "local") {
 }
 
 /**
- * The provider a *record* belongs to, which is not always the active one.
- *
- * After a migration the database holds media from both — the Cloudinary copies
- * in use and the local ones left behind. Removing a local file through the
- * Cloudinary provider silently does nothing, so anything deleting a stored file
- * must dispatch on `media.provider` rather than assuming the current default.
+ * The provider a *record* belongs to, which after a migration is not always the
+ * active one. Deleting a local file through the Cloudinary provider fails
+ * silently, so anything removing a stored file must dispatch on `media.provider`.
  */
 function getProvider(name) {
   return PROVIDERS[name] ?? storage;

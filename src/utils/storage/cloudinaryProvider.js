@@ -1,10 +1,8 @@
 /**
  * Cloudinary storage provider.
  *
- * Cloudinary is the client's choice, and it earns its place here beyond simple
- * hosting: slab photography is the entire product, and the delivery URL carries
- * the transformation, so one upload serves the 400px card, the 2000px detail
- * view and the 1200x630 social preview without a build step.
+ * The delivery URL carries the transformation, so one upload serves the 400px
+ * card, the 2000px detail view and the social preview with no build step.
  */
 import { v2 as cloudinary } from "cloudinary";
 import { env } from "../../config/env.js";
@@ -19,14 +17,9 @@ if (env.CLOUDINARY_CONFIGURED) {
 }
 
 /**
- * Cloudinary stores images, video and everything else under different resource
- * types, and the delivery URL differs per type — so getting this wrong means an
- * image stored as `raw`, with no dimensions and no transformations. That is
- * exactly what happened when the browser sent `application/octet-stream`, which
- * phones do routinely for HEIC and WebP.
- *
- * So the type is not guessed from the declared MIME type at all. `auto` lets
- * Cloudinary inspect the bytes, and its answer is what gets stored.
+ * Never guessed from the declared MIME type. Phones routinely send
+ * `application/octet-stream` for HEIC and WebP, which stored the image as
+ * `raw` — no dimensions, no transformations. `auto` inspects the bytes instead.
  */
 const AUTO_RESOURCE_TYPE = "auto";
 
@@ -47,14 +40,12 @@ const cloudinaryProvider = {
     const result = await uploadBuffer(buffer, {
       folder: [env.CLOUDINARY_FOLDER, folder].filter(Boolean).join("/"),
       resource_type: AUTO_RESOURCE_TYPE,
-      // Keep the original name as the visible part of the public id, but let
-      // Cloudinary append its own suffix so re-uploading never overwrites.
+      // Cloudinary appends its own suffix, so re-uploading never overwrites.
       public_id: filename?.replace(/\.[^.]+$/, "").slice(0, 80) || undefined,
       unique_filename: true,
       overwrite: false,
     });
 
-    // Whatever Cloudinary decided the bytes actually were.
     const resourceType = result.resource_type ?? "image";
 
     return {
@@ -62,8 +53,6 @@ const cloudinaryProvider = {
       storageKey: result.public_id,
       resourceType,
       url: result.secure_url,
-      // A card never needs the full slab. f_auto/q_auto lets Cloudinary pick
-      // AVIF or WebP per browser without us tracking format support.
       thumbnailUrl: this.derive(result.public_id, resourceType, { width: 600 }),
       width: result.width,
       height: result.height,
@@ -72,10 +61,7 @@ const cloudinaryProvider = {
     };
   },
 
-  /**
-   * Build a delivery URL at a given width. This is why one upload is enough:
-   * the storefront asks for the size it needs at render time.
-   */
+  /** A delivery URL at the requested width — asked for at render time. */
   derive(
     storageKey,
     resourceType = "image",
@@ -86,27 +72,16 @@ const cloudinaryProvider = {
       resource_type: resourceType,
       secure: true,
       transformation: [
-        // Every slab here was cropped out of a PDF catalogue page, and several
-        // kept a strip of the photographer's backdrop down one or both edges.
-        // Invisible on a small card, glaring across a full-bleed hero.
-        //
-        // Tolerance 45 was chosen by measuring, not guessing: it clears the
-        // border on both the darkest and the lightest slabs in the catalogue,
-        // where 35 left a column behind and 55 began eating into the stone.
-        // Applied at delivery, so the stored original is never degraded.
+        // Several slabs kept a strip of the photographer's backdrop when they
+        // were cropped from the catalogue — invisible on a card, glaring on a
+        // full-bleed hero. Tolerance 45 was measured: 35 left a column behind,
+        // 55 ate into the stone.
         ...(trim ? [{ effect: "trim:45" }] : []),
-        // AI super-resolution, for the hero only.
-        //
-        // Every slab here was recovered from a PDF catalogue, and the pages top
-        // out around 1389px — the crop is not discarding anything, that is
-        // simply all the source contains. A full-bleed hero on a 1440px retina
-        // display wants 2880px, so a plain scale-up softens every vein.
-        //
-        // e_upscale takes the 1326px Black Marquina to 5304px, and the veins
-        // come back with clean edges rather than blurred ones. It is deliberately
-        // not applied to cards: they never exceed the source width, so it would
-        // be cost with no benefit. The real fix remains the photographer's
-        // originals — docs/CLIENT-QUESTIONS.md §5.
+        // Hero only. The PDF pages top out near 1389px, so a full-bleed hero on
+        // a retina display would be a plain scale-up; e_upscale keeps the veins
+        // sharp. Cards never exceed the source width, so it would be cost with
+        // no benefit there. Real fix: the photographer's originals, §5 of
+        // docs/CLIENT-QUESTIONS.md.
         ...(upscale ? [{ effect: "upscale" }] : []),
         { width, height, crop },
         { quality: "auto", fetch_format: "auto" },

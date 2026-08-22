@@ -88,20 +88,11 @@ const env = Object.freeze({
   /**
    * The slab behind the home page's wordmark, by MOSSANO code.
    *
-   * Pinned rather than derived, for two reasons.
-   *
-   * Left to sort order it moved as a side effect of inventory work — marking a
-   * lot Available pushed it to the front of the featured list and it became the
-   * front page. The brand's strongest statement should not change because
-   * someone updated stock.
-   *
-   * And the choice is a measurement, not a preference. `npm run measure:hero`
-   * scores every published lot on how readable ivory type is over the band the
-   * text actually occupies. MM-001 Black Marquina wins by a distance — 21.7
-   * against 101 for the runner-up, and 157 for the lot the ranked fallback had
-   * been choosing. Over a pale slab the wordmark simply disappears.
-   *
-   * Empty falls through to that ranked fallback in public.service.js.
+   * Pinned, not derived: left to sort order it changed whenever the team
+   * touched stock. MM-001 is the measured winner — `npm run measure:hero`
+   * scores legibility of ivory type over each lot, and it takes 21.7 against
+   * 101 for the runner-up. Empty falls through to the ranked fallback in
+   * public.service.js.
    */
   HERO_STONE_CODE: (process.env.HERO_STONE_CODE || "MM-001").trim().toUpperCase(),
 

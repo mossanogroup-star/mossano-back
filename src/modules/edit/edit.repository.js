@@ -4,11 +4,11 @@ import { escapeRegex, runPagedQuery, softDeleteById } from "../../utils/reposito
 const POPULATE = [
   {
     path: "coverImage",
-    select: "url thumbnailUrl storageKey resourceType alt width height",
+    select: "url thumbnailUrl storageKey resourceType alt width height trimSafe",
   },
   {
     path: "images",
-    select: "url thumbnailUrl storageKey resourceType alt width height",
+    select: "url thumbnailUrl storageKey resourceType alt width height trimSafe",
   },
 ];
 

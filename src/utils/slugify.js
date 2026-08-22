@@ -1,10 +1,9 @@
 /**
  * URL slugs for stones, edits and applications.
  *
- * Stone names carry accents ("Nero Marquiña", "Crème Beige"), so the string is
- * normalised to decomposed form and the combining marks stripped — otherwise
- * the accented characters would be dropped outright and two different stones
- * could collapse onto the same slug.
+ * NFD-normalises first so accents survive as their base letter — without it
+ * "Nero Marquiña" and "Crème Beige" lose characters outright, and two distinct
+ * stones can collapse onto the same slug.
  */
 function slugify(value, { maxLength = 120 } = {}) {
   return String(value ?? "")
@@ -21,9 +20,8 @@ function slugify(value, { maxLength = 120 } = {}) {
 /**
  * A slug that does not collide, given an async existence check.
  *
- * Suffixes with the lot number when there is one — "black-marquina-17467" is
- * more useful in a shared URL than "black-marquina-2" — and falls back to a
- * counter otherwise.
+ * Prefers the lot number as the discriminator: "black-marquina-17467" means
+ * something in a forwarded URL where "black-marquina-2" does not.
  */
 async function uniqueSlug(base, exists, { discriminator } = {}) {
   const root = slugify(base) || "stone";
@@ -40,8 +38,7 @@ async function uniqueSlug(base, exists, { discriminator } = {}) {
     const candidate = `${withSuffix}-${n}`;
     if (!(await exists(candidate))) return candidate;
   }
-  // 500 collisions on one name is not a real catalogue state; failing loudly
-  // beats returning something that will throw on the unique index instead.
+  // Failing loudly beats returning a slug that will throw on the unique index.
   throw new Error(`Could not find a free slug for "${base}"`);
 }
 

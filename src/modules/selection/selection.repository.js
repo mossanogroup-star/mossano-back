@@ -4,7 +4,7 @@ import { escapeRegex, runPagedQuery, softDeleteById } from "../../utils/reposito
 const POPULATE = [
   {
     path: "images",
-    select: "url thumbnailUrl storageKey resourceType alt caption width height",
+    select: "url thumbnailUrl storageKey resourceType alt caption width height trimSafe",
   },
   { path: "createdBy", select: "name" },
   { path: "sourceEnquiry", select: "reference name company" },

@@ -41,6 +41,16 @@ const MediaSchema = new mongoose.Schema(
     thumbnailUrl: { type: String, trim: true },
 
     width: { type: Number },
+    /**
+     * Whether `e_trim` can be applied to this image safely.
+     *
+     * The trim removes the backdrop strip several slabs kept when they were
+     * cropped from the catalogue. On a pale slab the stone itself is within
+     * tolerance of that border, so Cloudinary trims nearly all of it: MM-007
+     * went from 600x470 to 2x686. Measured once at upload; the hero is the only
+     * consumer, and it falls back to the untrimmed image when this is false.
+     */
+    trimSafe: { type: Boolean, default: true },
     height: { type: Number },
     bytes: { type: Number },
     format: { type: String, trim: true },
