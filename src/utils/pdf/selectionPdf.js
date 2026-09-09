@@ -8,6 +8,7 @@
 import PDFDocument from "pdfkit";
 import { logger } from "../../config/logger.js";
 import { storage } from "../storage/index.js";
+import { brand } from "../../config/brand.js";
 
 const PAGE_MARGIN = 48;
 const INK = "#1a1613";
@@ -203,7 +204,9 @@ function drawFooter(doc, { whatsappNumber, email }) {
     .fillColor(MUTED)
     .fontSize(7.5)
     .text(
-      `MOSSANO MARMO  ·  Kishangarh, Rajasthan  ·  ${email}  ·  +${whatsappNumber}`,
+      // Read from brand rather than written out, so the printed address cannot
+      // drift from the one on the contact page.
+      `MOSSANO MARMO  ·  ${brand.address.city}  ·  ${email}  ·  +${whatsappNumber}`,
       PAGE_MARGIN,
       y,
       { width: doc.page.width - PAGE_MARGIN * 2, align: "center" },
