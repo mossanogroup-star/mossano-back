@@ -65,4 +65,15 @@ const publicFormRateLimit = createRateLimit({
   message: "That is a lot of enquiries in a short time. Please try again in a few minutes.",
 });
 
-export { createRateLimit, loginRateLimit, publicFormRateLimit };
+/**
+ * Reference-image uploads. Tighter than the form limit because this is the one
+ * unauthenticated route that writes bytes to storage, and each request can carry
+ * three files. Six requests still covers a customer replacing their images twice.
+ */
+const publicUploadRateLimit = createRateLimit({
+  windowMs: 10 * 60 * 1000,
+  max: 6,
+  message: "Too many uploads in a short time. Please try again in a few minutes.",
+});
+
+export { createRateLimit, loginRateLimit, publicFormRateLimit, publicUploadRateLimit };

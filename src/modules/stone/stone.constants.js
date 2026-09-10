@@ -73,17 +73,27 @@ const MATERIALS = [
   { slug: "semi-precious", label: "Semi-Precious" },
 ];
 
+/**
+ * Phase-1 feedback §2 asks for White, Exotic, Onyx, Travertine and Blue — the
+ * client's own vocabulary, and closer to the brochure's "White Marble" and
+ * "Exotic Marble" collections than to a colour wheel.
+ *
+ * Beige, black and grey are kept below them because every one of the seeded lots
+ * carries one: `colour` is an enum, so removing a value already in the database
+ * would make those records fail validation the next time anyone saved one. The
+ * five that went (green, brown, gold, red, multi) were trade vocabulary nothing
+ * had ever been classified as. FilterRail hides any option with a zero count, so
+ * the rail shows only what the catalogue can actually populate.
+ */
 const COLOURS = [
   { slug: "white", label: "White" },
-  { slug: "beige", label: "Beige" },
-  { slug: "grey", label: "Grey" },
-  { slug: "black", label: "Black" },
-  { slug: "green", label: "Green" },
-  { slug: "brown", label: "Brown" },
-  { slug: "gold", label: "Gold" },
+  { slug: "exotic", label: "Exotic" },
+  { slug: "onyx", label: "Onyx" },
+  { slug: "travertine", label: "Travertine" },
   { slug: "blue", label: "Blue" },
-  { slug: "red", label: "Red" },
-  { slug: "multi", label: "Multicolour" },
+  { slug: "beige", label: "Beige" },
+  { slug: "black", label: "Black" },
+  { slug: "grey", label: "Grey" },
 ];
 
 const FINISHES = [

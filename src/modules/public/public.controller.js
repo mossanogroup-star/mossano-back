@@ -5,7 +5,9 @@ import { toPublicStoneDto, toStoneCardDto } from "../stone/stone.dto.js";
 import { toPublicEditDto, toPublicEditDetailDto } from "../edit/edit.dto.js";
 import { toPublicApplicationDto } from "../application/application.dto.js";
 import { toPublicSelectionDto } from "../selection/selection.dto.js";
-import { toHeroMediaDto } from "../media/media.dto.js";
+import { toHeroMediaDto, toMediaDto } from "../media/media.dto.js";
+import { mediaService } from "../media/media.service.js";
+import { AppError } from "../../utils/AppError.js";
 import { toSubmissionReceiptDto } from "../enquiry/enquiry.dto.js";
 import { buildSelectionPdf } from "../../utils/pdf/selectionPdf.js";
 import { sendSuccess } from "../../utils/response.js";
@@ -165,6 +167,38 @@ const favourites = asyncHandler(async (req, res) => {
  *
  * The response carries a reference and nothing else — see enquiry.dto.js.
  */
+/** Phase-1 feedback §6 — the Projects page, grouped by sector. */
+const projects = asyncHandler(async (_req, res) => {
+  const groups = await publicService.projects();
+  return sendSuccess(res, {
+    data: groups.map((group) => ({
+      ...group,
+      projects: group.projects.map((doc) => toPublicApplicationDto(doc)),
+    })),
+  });
+});
+
+/**
+ * Reference images for a sourcing enquiry, uploaded before the form is sent.
+ *
+ * Two-step on purpose: the enquiry itself takes Media ids, so the customer sees
+ * their images accepted (or rejected) while they are still filling the form
+ * rather than losing a completed brief to a 20 MB photograph. Anything uploaded
+ * and never submitted is left unreferenced, which `prune:media` collects.
+ */
+const uploadReferenceImages = asyncHandler(async (req, res) => {
+  const files = req.files ?? [];
+  if (!files.length) throw new AppError("No image was uploaded", 400);
+
+  const { uploaded, errors } = await mediaService.uploadMany(files, { kind: "reference" });
+
+  return sendSuccess(res, {
+    statusCode: 201,
+    message: "Uploaded",
+    data: { images: uploaded.map(toMediaDto), errors },
+  });
+});
+
 const submitEnquiry = asyncHandler(async (req, res) => {
   const enquiry = await enquiryService.submit(req.validated.body, {
     sourcePath: req.validated.body.sourcePath || req.get("referer"),
@@ -212,7 +246,9 @@ const publicController = {
   applications,
   application,
   applicationProject,
+  projects,
   favourites,
+  uploadReferenceImages,
   submitEnquiry,
   selection,
   selectionPdf,

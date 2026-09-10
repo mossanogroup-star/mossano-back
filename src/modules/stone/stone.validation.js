@@ -59,6 +59,8 @@ const stoneBodyCreateSchema = z.object({
   slabWidthIn: z.number().min(0).max(400).optional(),
   slabCount: z.number().int().min(0).max(10_000).optional(),
   areaSqFt: z.number().min(0).max(1_000_000).optional(),
+  /** Free text — the trade quotes "8 × 4 ft approx", not inches. */
+  approxSlabSize: optionalText(60),
 
   looks: z.array(z.enum(LOOK_SLUGS)).max(6).optional().default([]),
   applications: z.array(z.enum(APPLICATION_SLUGS)).max(7).optional().default([]),

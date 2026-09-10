@@ -10,6 +10,10 @@ const POPULATE = [
     path: "images",
     select: "url thumbnailUrl storageKey resourceType alt caption width height trimSafe",
   },
+  {
+    path: "videos",
+    select: "url thumbnailUrl storageKey resourceType alt caption width height trimSafe",
+  },
 ];
 
 function buildFilter({ application, search, featured, publishedOnly, includeDeleted, stoneId }) {
@@ -41,6 +45,17 @@ const applicationRepository = {
 
   findById: (id) =>
     ApplicationModel.findOne({ _id: id, isDeleted: false }).populate(POPULATE).lean(),
+
+  /**
+   * The Projects page — Phase-1 feedback §6. Only records with a sector, so an
+   * ordinary application photograph never appears among the landmark projects.
+   * Largest first: the brochure leads on 450,000 sq ft, and scale is the claim.
+   */
+  findProjects: () =>
+    ApplicationModel.find({ isDeleted: false, isPublished: true, sector: { $ne: null } })
+      .sort({ areaSqFt: -1, createdAt: -1 })
+      .populate(POPULATE)
+      .lean(),
 
   findBySlug: (slug, { publishedOnly = true } = {}) =>
     ApplicationModel.findOne({

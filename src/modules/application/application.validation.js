@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { APPLICATION_SLUGS } from "../stone/stone.constants.js";
+import { PROJECT_SECTOR_SLUGS } from "./application.model.js";
 import {
   objectIdSchema,
   searchSchema,
@@ -26,6 +27,21 @@ const applicationBodyCreateSchema = z.object({
   coverImage: objectIdSchema.optional(),
   imageIds: z.array(objectIdSchema).max(60).optional(),
   stoneIds: z.array(objectIdSchema).max(60).optional(),
+
+  // Phase-1 feedback §6 — the Projects page.
+  videoIds: z.array(objectIdSchema).max(12).optional(),
+  links: z
+    .array(
+      z.object({
+        label: z.string().trim().min(1).max(80),
+        url: z.string().trim().url("Enter a full URL, including https://").max(500),
+      }),
+    )
+    .max(8)
+    .optional(),
+  sector: z.enum(PROJECT_SECTOR_SLUGS).optional(),
+  areaSqFt: z.number().min(0).max(10_000_000).optional(),
+
   isFeatured: z.boolean().optional().default(false),
   isPublished: z.boolean().optional().default(true),
 });

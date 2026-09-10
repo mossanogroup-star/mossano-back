@@ -79,6 +79,14 @@ const StoneSchema = new mongoose.Schema(
     slabCount: { type: Number, min: 0 },
     areaSqFt: { type: Number, min: 0 },
 
+    /**
+     * Phase-1 feedback §2 — what the stone page shows in place of the exact
+     * decoded dimensions. Free text, because the team quotes lot sizes the way
+     * the trade does ("8 × 4 ft approx") rather than to the inch. Left empty,
+     * the DTO falls back to the decoded slabLengthIn × slabWidthIn.
+     */
+    approxSlabSize: { type: String, trim: true },
+
     looks: { type: [String], enum: LOOK_SLUGS, default: [], index: true },
     applications: {
       type: [String],

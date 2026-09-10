@@ -74,10 +74,45 @@ const uploadSingle = upload.single("file");
 /** Slab uploads arrive as a whole lot at once — the admin drops in 40 at a time. */
 const uploadMany = upload.array("files", 20);
 
+/** Images only — no video path, and no MIME-vagueness allowance for video. */
+function imageOnlyFilter(_req, file, cb) {
+  const mime = (file.mimetype || "").toLowerCase();
+  if (IMAGE_TYPES.includes(mime)) return cb(null, true);
+
+  const ext = path.extname(file.originalname || "").toLowerCase();
+  if (VAGUE_TYPES.includes(mime) && IMAGE_EXTENSIONS.includes(ext)) return cb(null, true);
+
+  cb(
+    new AppError(
+      `${file.originalname || "That file"} is not an image. Upload a JPEG, PNG, WebP or HEIC.`,
+      415,
+      { code: "UNSUPPORTED_MEDIA_TYPE" },
+    ),
+  );
+}
+
+/**
+ * Reference images from the public sourcing form.
+ *
+ * Kept separate from `upload` on purpose: this is the only route where an
+ * unauthenticated visitor can put bytes on the server, so it takes images only,
+ * three at a time, at the image ceiling rather than the much larger video one.
+ * The route it is mounted on is rate limited as well.
+ */
+const uploadReferenceImages = multer({
+  storage: multer.memoryStorage(),
+  fileFilter: imageOnlyFilter,
+  limits: {
+    fileSize: env.MAX_UPLOAD_MB * 1024 * 1024,
+    files: 3,
+  },
+}).array("files", 3);
+
 export {
   upload,
   uploadSingle,
   uploadMany,
+  uploadReferenceImages,
   isVideoUpload,
   IMAGE_TYPES,
   VIDEO_TYPES,

@@ -225,6 +225,11 @@ const publicService = {
     return { project, stones: await applicationService.resolveStones(project) };
   },
 
+  /** Phase-1 feedback §6 — the Projects page, grouped by sector. */
+  projects() {
+    return applicationService.projects();
+  },
+
   /**
    * Website §5 — resolves the device's stored slugs into cards.
    *

@@ -5,7 +5,8 @@
  */
 import { Router } from "express";
 import { validateRequest } from "../../middlewares/validateRequest.js";
-import { publicFormRateLimit } from "../../middlewares/rateLimit.js";
+import { publicFormRateLimit, publicUploadRateLimit } from "../../middlewares/rateLimit.js";
+import { uploadReferenceImages } from "../../middlewares/upload.js";
 import { publicController } from "./public.controller.js";
 import {
   publicShopSchema,
@@ -46,14 +47,27 @@ router.get(
   publicController.application,
 );
 
+// Phase-1 feedback §6 — the landmark Projects page.
+router.get("/projects", publicController.projects);
+
 router.post("/favourites", validateRequest(publicFavouritesSchema), publicController.favourites);
 
-// The only unauthenticated write. Rate-limited per IP.
+// The two unauthenticated writes. Both rate-limited per IP.
 router.post(
   "/enquiries",
   publicFormRateLimit,
   validateRequest(enquirySubmitSchema),
   publicController.submitEnquiry,
+);
+
+// Phase-1 feedback §4 — reference images, uploaded before the form is sent so
+// the customer learns a photograph was rejected while they can still fix it.
+// Images only, three at a time, and separately rate limited: see upload.js.
+router.post(
+  "/enquiries/reference-images",
+  publicUploadRateLimit,
+  uploadReferenceImages,
+  publicController.uploadReferenceImages,
 );
 
 // Private selections, addressed by their unguessable token.

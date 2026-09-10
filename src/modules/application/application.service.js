@@ -1,4 +1,5 @@
 import { applicationRepository } from "./application.repository.js";
+import { PROJECT_SECTORS } from "./application.model.js";
 import { stoneRepository } from "../stone/stone.repository.js";
 import { APPLICATIONS, labelOf } from "../stone/stone.constants.js";
 import { uniqueSlug } from "../../utils/slugify.js";
@@ -14,6 +15,10 @@ function buildPatch(body) {
   if (body.stoneIds !== undefined) {
     patch.stones = body.stoneIds;
     delete patch.stoneIds;
+  }
+  if (body.videoIds !== undefined) {
+    patch.videos = body.videoIds;
+    delete patch.videoIds;
   }
   return patch;
 }
@@ -73,6 +78,20 @@ const applicationService = {
         isEmpty: projectCount === 0 && stoneCount === 0,
       };
     });
+  },
+
+  /**
+   * The Projects page — Phase-1 feedback §6. Grouped by sector so the page
+   * reads the way the client's brochure does, and sectors with nothing in them
+   * are dropped rather than rendered as empty headings.
+   */
+  async projects() {
+    const docs = await applicationRepository.findProjects();
+    return PROJECT_SECTORS.map(({ slug, label }) => ({
+      slug,
+      label,
+      projects: docs.filter((d) => d.sector === slug),
+    })).filter((group) => group.projects.length > 0);
   },
 
   async create(body, user) {

@@ -14,6 +14,20 @@
 import mongoose from "mongoose";
 import { APPLICATION_SLUGS } from "../stone/stone.constants.js";
 
+/**
+ * How the Projects page groups a project — the brochure's own headings
+ * ("Landmark Projects: Residential", "Hospitality & Infrastructure").
+ * Optional: an ordinary application photo is not a landmark project.
+ */
+const PROJECT_SECTORS = [
+  { slug: "residential", label: "Residential" },
+  { slug: "hospitality", label: "Hospitality" },
+  { slug: "commercial", label: "Commercial" },
+  { slug: "infrastructure", label: "Infrastructure" },
+];
+
+const PROJECT_SECTOR_SLUGS = PROJECT_SECTORS.map((s) => s.slug);
+
 const ApplicationSchema = new mongoose.Schema(
   {
     title: { type: String, required: true, trim: true },
@@ -43,6 +57,26 @@ const ApplicationSchema = new mongoose.Schema(
     coverImage: { type: mongoose.Schema.Types.ObjectId, ref: "Media" },
     images: [{ type: mongoose.Schema.Types.ObjectId, ref: "Media" }],
 
+    /** Phase-1 feedback §6 — the Projects page carries video, not just stills. */
+    videos: [{ type: mongoose.Schema.Types.ObjectId, ref: "Media" }],
+
+    /**
+     * Phase-1 feedback §6's "entry links" — anything worth linking out to for
+     * this project: the developer, a press piece, a walkthrough.
+     */
+    links: [
+      {
+        _id: false,
+        label: { type: String, trim: true, required: true },
+        url: { type: String, trim: true, required: true },
+      },
+    ],
+
+    /** Set only on the landmark projects that appear on /projects. */
+    sector: { type: String, enum: PROJECT_SECTOR_SLUGS, index: true },
+    /** As the brochure quotes it — "450,000 Sq. Ft." */
+    areaSqFt: { type: Number, min: 0 },
+
     /** The stones actually used, so a customer can go from the room to the lot. */
     stones: [{ type: mongoose.Schema.Types.ObjectId, ref: "Stone" }],
 
@@ -65,6 +99,9 @@ ApplicationSchema.index({
   createdAt: -1,
 });
 
+/** The Projects page lists by sector, newest first. */
+ApplicationSchema.index({ isDeleted: 1, isPublished: 1, sector: 1, areaSqFt: -1 });
+
 const ApplicationModel = mongoose.model("Application", ApplicationSchema);
 
-export { ApplicationModel };
+export { ApplicationModel, PROJECT_SECTORS, PROJECT_SECTOR_SLUGS };

@@ -61,10 +61,15 @@ function isVerificationFresh(lastVerifiedAt) {
 const ON_REQUEST = "On request";
 
 function buildSpecs(doc) {
-  const dimensions =
-    doc.slabLengthIn && doc.slabWidthIn
-      ? `${doc.slabLengthIn} × ${doc.slabWidthIn} in`
-      : ON_REQUEST;
+  /**
+   * Phase-1 feedback §2 replaced the exact "Slab size" and "Slabs in lot" rows
+   * with one approximate size. The decoded dimensions stay as the fallback, so
+   * the 22 lots transcribed from the catalogues keep showing a size until the
+   * team types their own.
+   */
+  const approxSize =
+    doc.approxSlabSize ||
+    (doc.slabLengthIn && doc.slabWidthIn ? `${doc.slabLengthIn} × ${doc.slabWidthIn} in` : "");
 
   return [
     { label: "Origin", value: doc.origin || ON_REQUEST },
@@ -77,11 +82,7 @@ function buildSpecs(doc) {
       label: "Thickness",
       value: doc.thicknessMm ? `${doc.thicknessMm} mm` : ON_REQUEST,
     },
-    { label: "Slab size", value: dimensions },
-    {
-      label: "Slabs in lot",
-      value: doc.slabCount ? String(doc.slabCount) : ON_REQUEST,
-    },
+    { label: "Approx. slab size", value: approxSize || ON_REQUEST },
     {
       label: "Approximate area",
       value: doc.areaSqFt ? `${doc.areaSqFt.toLocaleString("en-IN")} sq ft` : ON_REQUEST,
@@ -123,6 +124,7 @@ function toPublicStoneDto(doc) {
     slabWidthIn: doc.slabWidthIn ?? null,
     slabCount: doc.slabCount ?? null,
     areaSqFt: doc.areaSqFt ?? null,
+    approxSlabSize: doc.approxSlabSize ?? null,
 
     looks: (doc.looks ?? []).map((slug) => ({
       slug,
