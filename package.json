@@ -14,7 +14,8 @@
     "validate": "npm run lint && npm run format:check",
     "prune:media": "node scripts/pruneOrphanMedia.js",
     "format:check": "prettier --check .",
-    "measure:hero": "node scripts/measureHeroLegibility.js"
+    "measure:hero": "node scripts/measureHeroLegibility.js",
+    "seed:phase2": "node scripts/seedPhase2.js"
   },
   "dependencies": {
     "bcryptjs": "^3.0.2",

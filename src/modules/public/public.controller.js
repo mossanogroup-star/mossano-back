@@ -3,9 +3,11 @@ import { enquiryService } from "../enquiry/enquiry.service.js";
 import { selectionService } from "../selection/selection.service.js";
 import { toPublicStoneDto, toStoneCardDto } from "../stone/stone.dto.js";
 import { toPublicEditDto, toPublicEditDetailDto } from "../edit/edit.dto.js";
-import { toPublicApplicationDto } from "../application/application.dto.js";
+import { toPublicApplicationDto, toApplicationContentDto } from "../application/application.dto.js";
 import { toPublicSelectionDto } from "../selection/selection.dto.js";
 import { toHeroMediaDto, toMediaDto } from "../media/media.dto.js";
+import { clientService } from "../client/client.service.js";
+import { toPublicCategoryDto } from "../client/client.dto.js";
 import { mediaService } from "../media/media.service.js";
 import { AppError } from "../../utils/AppError.js";
 import { toSubmissionReceiptDto } from "../enquiry/enquiry.dto.js";
@@ -136,12 +138,13 @@ const applications = asyncHandler(async (_req, res) =>
 );
 
 const application = asyncHandler(async (req, res) => {
-  const { items, projects, slug, label, ...meta } = await publicService.application(
+  const { items, projects, content, slug, label, ...meta } = await publicService.application(
     req.validated.params.slug,
     req.validated.query,
   );
   return sendSuccess(res, {
     data: {
+      content: toApplicationContentDto(content, { slug, label }),
       projects: projects.map((p) => toPublicApplicationDto(p)),
       stones: items.map(toStoneCardDto),
     },
@@ -161,12 +164,19 @@ const favourites = asyncHandler(async (req, res) => {
 });
 
 /**
- * The one unauthenticated write in the API. Every public form arrives here:
- * contact, stone enquiry, reserve, slab video, sourcing brief, pre-book,
- * register interest, and a message raised from a private selection.
+ * Phase-2 feedback §1 and §2 — clients grouped by category.
  *
- * The response carries a reference and nothing else — see enquiry.dto.js.
+ * One payload serves both surfaces: the Clients page renders the groups, and the
+ * home carousel flattens them. Two endpoints would mean two caches to invalidate
+ * for one admin edit.
  */
+const clients = asyncHandler(async (_req, res) => {
+  const groups = await clientService.publicIndex();
+  return sendSuccess(res, {
+    data: groups.map(({ category, clients: list }) => toPublicCategoryDto(category, list)),
+  });
+});
+
 /** Phase-1 feedback §6 — the Projects page, grouped by sector. */
 const projects = asyncHandler(async (_req, res) => {
   const groups = await publicService.projects();
@@ -199,6 +209,13 @@ const uploadReferenceImages = asyncHandler(async (req, res) => {
   });
 });
 
+/**
+ * The one unauthenticated write in the API. Every public form arrives here:
+ * contact, stone enquiry, reserve, slab video, sourcing brief, pre-book,
+ * register interest, and a message raised from a private selection.
+ *
+ * The response carries a reference and nothing else — see enquiry.dto.js.
+ */
 const submitEnquiry = asyncHandler(async (req, res) => {
   const enquiry = await enquiryService.submit(req.validated.body, {
     sourcePath: req.validated.body.sourcePath || req.get("referer"),
@@ -247,6 +264,7 @@ const publicController = {
   application,
   applicationProject,
   projects,
+  clients,
   favourites,
   uploadReferenceImages,
   submitEnquiry,

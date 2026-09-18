@@ -201,7 +201,10 @@ const publicService = {
     const label = labelOf(APPLICATIONS, slug);
     if (!label) throw new AppError("Unknown application", 404);
 
-    const [projects, stones] = await Promise.all([
+    // Phase-2 feedback §5 — the page's own imagery, which is a different thing
+    // from the projects below it.
+    const [content, projects, stones] = await Promise.all([
+      applicationService.getContent(slug),
       applicationRepository.findMany({
         application: [slug],
         publishedOnly: true,
@@ -216,7 +219,7 @@ const publicService = {
       }),
     ]);
 
-    return { slug, label, projects: projects.items, ...stones };
+    return { slug, label, content, projects: projects.items, ...stones };
   },
 
   async applicationProject(slug) {

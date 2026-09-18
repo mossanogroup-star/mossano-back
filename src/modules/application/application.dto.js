@@ -26,6 +26,8 @@ function toPublicApplicationDto(doc, stones) {
     videos,
     hasVideo: videos.length > 0,
     links: (doc.links ?? []).filter((l) => l?.label && l?.url),
+    // Phase-2 feedback §3.
+    instagramUrls: (doc.instagramUrls ?? []).filter(Boolean),
     sector: doc.sector ?? null,
     sectorLabel: labelOf(PROJECT_SECTORS, doc.sector),
     areaSqFt: doc.areaSqFt ?? null,
@@ -52,4 +54,21 @@ function toAdminApplicationDto(doc, stones) {
   };
 }
 
-export { toPublicApplicationDto, toAdminApplicationDto };
+/**
+ * Phase-2 feedback §5 — an application page's own content.
+ *
+ * Always returns a shape, even where the team has written nothing: the page
+ * renders the taxonomy label and its stones regardless, and a null here would
+ * make every consumer guard for it.
+ */
+function toApplicationContentDto(doc, { slug, label }) {
+  return {
+    application: slug,
+    headline: doc?.headline || label,
+    description: doc?.description || "",
+    images: (doc?.images ?? []).map(toMediaDto).filter(Boolean),
+    isPublished: doc ? doc.isPublished !== false : false,
+  };
+}
+
+export { toPublicApplicationDto, toAdminApplicationDto, toApplicationContentDto };

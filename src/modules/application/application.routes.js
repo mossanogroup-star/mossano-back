@@ -9,6 +9,7 @@ import {
   applicationGetSchema,
   applicationUpdateSchema,
   applicationDeleteSchema,
+  applicationContentSaveSchema,
 } from "./application.validation.js";
 
 const router = Router();
@@ -16,6 +17,15 @@ const router = Router();
 router.use(authenticate);
 
 router.get("/index", canRead, applicationController.index);
+
+// Phase-2 feedback §5. Before /:id, or "content" is read as an id.
+router.get("/content", canRead, applicationController.listContent);
+router.put(
+  "/content/:application",
+  canManage,
+  validateRequest(applicationContentSaveSchema),
+  applicationController.saveContent,
+);
 router.get("/", canRead, validateRequest(applicationListSchema), applicationController.list);
 router.post("/", canManage, validateRequest(applicationCreateSchema), applicationController.create);
 

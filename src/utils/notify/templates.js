@@ -6,6 +6,7 @@
  */
 import { env } from "../../config/env.js";
 import { ENQUIRY_TYPE_LABELS } from "../../modules/enquiry/enquiry.constants.js";
+import { APPLICATIONS, MATERIALS, COLOURS, labelOf } from "../../modules/stone/stone.constants.js";
 
 /** "+91 98200 11223" from whatever the customer typed. */
 function formatContact(phone, email) {
@@ -32,10 +33,24 @@ function buildEnquiryAlert(enquiry) {
 
   lines.push(`Interest: Yes`);
 
+  /**
+   * Phase-2 feedback §7 asks the team's alert to carry everything the customer
+   * selected, not a summary — they act on it before ringing back, so a field
+   * left out here is one they have to ask for twice. Slugs are printed as their
+   * labels: "hotel-lobby" is not what anyone calls it.
+   */
   if (s.quantity) lines.push(`Quantity: ${s.quantity}`);
   if (s.projectLocation) lines.push(`Location: ${s.projectLocation}`);
   if (s.requiredBy) lines.push(`Required Delivery: ${s.requiredBy}`);
-  if (s.material) lines.push(`Material: ${s.material}`);
+  if (s.application) lines.push(`Application: ${labelOf(APPLICATIONS, s.application)}`);
+  if (s.material) lines.push(`Material: ${labelOf(MATERIALS, s.material)}`);
+  if (s.colour) lines.push(`Colour: ${labelOf(COLOURS, s.colour)}`);
+  if (s.thickness) lines.push(`Thickness: ${s.thickness}`);
+  if (s.budget) lines.push(`Budget: ${s.budget}`);
+  if (s.referenceImages?.length) {
+    lines.push(`Reference images: ${s.referenceImages.length} attached`);
+  }
+  if (s.wantsMossanoToSelect) lines.push(`Asked MOSSANO to choose for them: yes`);
 
   lines.push(`Customer contact: ${formatContact(enquiry.phone, enquiry.email)}`);
 

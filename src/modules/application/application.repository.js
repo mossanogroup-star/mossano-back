@@ -1,4 +1,4 @@
-import { ApplicationModel } from "./application.model.js";
+import { ApplicationModel, ApplicationContentModel } from "./application.model.js";
 import { escapeRegex, runPagedQuery, softDeleteById } from "../../utils/repositoryHelpers.js";
 
 const POPULATE = [
@@ -12,6 +12,13 @@ const POPULATE = [
   },
   {
     path: "videos",
+    select: "url thumbnailUrl storageKey resourceType alt caption width height trimSafe",
+  },
+];
+
+const CONTENT_POPULATE = [
+  {
+    path: "images",
     select: "url thumbnailUrl storageKey resourceType alt caption width height trimSafe",
   },
 ];
@@ -56,6 +63,32 @@ const applicationRepository = {
       .sort({ areaSqFt: -1, createdAt: -1 })
       .populate(POPULATE)
       .lean(),
+
+  // --- Phase-2 feedback §5: the Shop by Application pages' own content ---
+
+  findContent: (application, { publishedOnly = true } = {}) =>
+    ApplicationContentModel.findOne({
+      application,
+      ...(publishedOnly ? { isPublished: true } : {}),
+    })
+      .populate(CONTENT_POPULATE)
+      .lean(),
+
+  findAllContent: () => ApplicationContentModel.find().populate(CONTENT_POPULATE).lean(),
+
+  /**
+   * Upsert, not create-or-update: the application slug is the key and there is
+   * exactly one record per slug, so the admin never has to know whether this
+   * page has been written before.
+   */
+  async upsertContent(application, patch) {
+    await ApplicationContentModel.updateOne(
+      { application },
+      { $set: { ...patch, application } },
+      { upsert: true },
+    );
+    return this.findContent(application, { publishedOnly: false });
+  },
 
   findBySlug: (slug, { publishedOnly = true } = {}) =>
     ApplicationModel.findOne({

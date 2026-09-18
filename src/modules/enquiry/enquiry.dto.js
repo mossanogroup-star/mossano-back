@@ -4,7 +4,7 @@ import {
   ENQUIRY_STATUS_LABELS,
   HIGH_INTENT_TYPES,
 } from "./enquiry.constants.js";
-import { MATERIALS, COLOURS, labelOf } from "../stone/stone.constants.js";
+import { MATERIALS, COLOURS, APPLICATIONS, labelOf } from "../stone/stone.constants.js";
 
 function toSourcingDto(sourcing) {
   if (!sourcing) return null;
@@ -13,6 +13,9 @@ function toSourcingDto(sourcing) {
     materialLabel: labelOf(MATERIALS, sourcing.material),
     colour: sourcing.colour ?? null,
     colourLabel: labelOf(COLOURS, sourcing.colour),
+    /** Phase-2 feedback §7 — what the room is, from the chatbot. */
+    application: sourcing.application ?? null,
+    applicationLabel: labelOf(APPLICATIONS, sourcing.application),
     thickness: sourcing.thickness ?? null,
     quantity: sourcing.quantity ?? null,
     budget: sourcing.budget ?? null,

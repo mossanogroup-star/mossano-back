@@ -94,6 +94,37 @@ const applicationService = {
     })).filter((group) => group.projects.length > 0);
   },
 
+  // --- Phase-2 feedback §5: the Shop by Application pages' own content ---
+
+  getContent(application, opts) {
+    return applicationRepository.findContent(application, opts);
+  },
+
+  /** Every application, written or not, so the admin can see what is missing. */
+  async listContent() {
+    const written = await applicationRepository.findAllContent();
+    const by = new Map(written.map((c) => [c.application, c]));
+    return APPLICATIONS.map(({ slug, label }) => ({
+      slug,
+      label,
+      content: by.get(slug) ?? null,
+    }));
+  },
+
+  async saveContent(application, body, user) {
+    if (!labelOf(APPLICATIONS, application)) throw new AppError("Unknown application", 404);
+
+    const patch = { ...body, updatedBy: user?.id };
+    if (body.imageIds !== undefined) {
+      patch.images = body.imageIds;
+      delete patch.imageIds;
+    }
+
+    const saved = await applicationRepository.upsertContent(application, patch);
+    invalidateStorefront();
+    return saved;
+  },
+
   async create(body, user) {
     const patch = buildPatch(body);
     patch.slug = await uniqueSlug(

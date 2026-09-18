@@ -61,6 +61,15 @@ const ApplicationSchema = new mongoose.Schema(
     videos: [{ type: mongoose.Schema.Types.ObjectId, ref: "Media" }],
 
     /**
+     * Phase-2 feedback §3 — Instagram reels, by URL.
+     *
+     * Stored as the URL the team pastes, not an embed: Instagram's own endpoint
+     * builds the player, so a post the client later edits or deletes stays in
+     * step instead of leaving a dead copy on the project page.
+     */
+    instagramUrls: [{ type: String, trim: true }],
+
+    /**
      * Phase-1 feedback §6's "entry links" — anything worth linking out to for
      * this project: the developer, a press piece, a walkthrough.
      */
@@ -102,6 +111,41 @@ ApplicationSchema.index({
 /** The Projects page lists by sector, newest first. */
 ApplicationSchema.index({ isDeleted: 1, isPublished: 1, sector: 1, areaSqFt: -1 });
 
-const ApplicationModel = mongoose.model("Application", ApplicationSchema);
+/**
+ * Phase-2 feedback §5 — the Shop by Application pages.
+ *
+ * Deliberately a separate collection from the project records above. The client
+ * is explicit that an application page "should not be treated as a project":
+ * Bathroom Wall & Floor needs its own imagery showing the use case, which is a
+ * different thing from a named development MOSSANO supplied.
+ *
+ * One record per application slug — `unique` enforces that, so the page can
+ * never end up with two competing descriptions.
+ */
+const ApplicationContentSchema = new mongoose.Schema(
+  {
+    application: {
+      type: String,
+      enum: APPLICATION_SLUGS,
+      required: true,
+      unique: true,
+      index: true,
+    },
 
-export { ApplicationModel, PROJECT_SECTORS, PROJECT_SECTOR_SLUGS };
+    /** Optional: blank falls back to the taxonomy label in stone.constants.js. */
+    headline: { type: String, trim: true },
+    description: { type: String, trim: true, default: "" },
+
+    images: [{ type: mongoose.Schema.Types.ObjectId, ref: "Media" }],
+
+    isPublished: { type: Boolean, default: true, index: true },
+    createdBy: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+    updatedBy: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+  },
+  { timestamps: true },
+);
+
+const ApplicationModel = mongoose.model("Application", ApplicationSchema);
+const ApplicationContentModel = mongoose.model("ApplicationContent", ApplicationContentSchema);
+
+export { ApplicationModel, ApplicationContentModel, PROJECT_SECTORS, PROJECT_SECTOR_SLUGS };

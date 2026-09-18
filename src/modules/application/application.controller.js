@@ -1,5 +1,6 @@
 import { applicationService } from "./application.service.js";
-import { toAdminApplicationDto } from "./application.dto.js";
+import { toAdminApplicationDto, toApplicationContentDto } from "./application.dto.js";
+import { APPLICATIONS, labelOf } from "../stone/stone.constants.js";
 import { sendSuccess } from "../../utils/response.js";
 import { asyncHandler } from "../../utils/asyncHandler.js";
 
@@ -49,6 +50,35 @@ const remove = asyncHandler(async (req, res) => {
   return sendSuccess(res, { message: "Removed", data: result });
 });
 
-const applicationController = { list, index, get, create, update, remove };
+/** Phase-2 feedback §5 — every application page, written or not. */
+const listContent = asyncHandler(async (_req, res) => {
+  const rows = await applicationService.listContent();
+  return sendSuccess(res, {
+    data: rows.map(({ slug, label, content }) => toApplicationContentDto(content, { slug, label })),
+  });
+});
+
+const saveContent = asyncHandler(async (req, res) => {
+  const { application } = req.validated.params;
+  const saved = await applicationService.saveContent(application, req.validated.body, req.user);
+  return sendSuccess(res, {
+    message: "Saved",
+    data: toApplicationContentDto(saved, {
+      slug: application,
+      label: labelOf(APPLICATIONS, application),
+    }),
+  });
+});
+
+const applicationController = {
+  list,
+  index,
+  get,
+  create,
+  update,
+  remove,
+  listContent,
+  saveContent,
+};
 
 export { applicationController };

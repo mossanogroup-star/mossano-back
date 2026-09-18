@@ -82,6 +82,7 @@ router.get(
       { loc: `${base}/look`, changefreq: "monthly", priority: "0.7" },
       { loc: `${base}/application`, changefreq: "monthly", priority: "0.7" },
       { loc: `${base}/projects`, changefreq: "monthly", priority: "0.7" },
+      { loc: `${base}/clients`, changefreq: "monthly", priority: "0.6" },
       {
         loc: `${base}/private-sourcing`,
         changefreq: "yearly",

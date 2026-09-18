@@ -30,6 +30,24 @@ const applicationBodyCreateSchema = z.object({
 
   // Phase-1 feedback §6 — the Projects page.
   videoIds: z.array(objectIdSchema).max(12).optional(),
+
+  /**
+   * Phase-2 feedback §3. Restricted to instagram.com so a paste of the wrong
+   * link fails here rather than rendering an empty embed on the live page.
+   */
+  instagramUrls: z
+    .array(
+      z
+        .string()
+        .trim()
+        .url("Enter a full Instagram URL")
+        .refine((u) => /^https?:\/\/(www\.)?instagram\.com\//i.test(u), {
+          message: "That is not an instagram.com link",
+        })
+        .max(500),
+    )
+    .max(12)
+    .optional(),
   links: z
     .array(
       z.object({
@@ -68,10 +86,22 @@ const applicationUpdateSchema = makeSchema({
 });
 const applicationDeleteSchema = makeSchema({ params: idParamSchema });
 
+/** Phase-2 feedback §5 — an application page's own content. */
+const applicationContentSaveSchema = makeSchema({
+  params: z.object({ application: z.enum(APPLICATION_SLUGS) }),
+  body: z.object({
+    headline: optionalText(120),
+    description: optionalText(4000),
+    imageIds: z.array(objectIdSchema).max(40).optional(),
+    isPublished: z.boolean().optional().default(true),
+  }),
+});
+
 export {
   applicationListSchema,
   applicationCreateSchema,
   applicationGetSchema,
   applicationUpdateSchema,
   applicationDeleteSchema,
+  applicationContentSaveSchema,
 };

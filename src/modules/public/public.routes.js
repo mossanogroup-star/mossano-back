@@ -50,6 +50,9 @@ router.get(
 // Phase-1 feedback §6 — the landmark Projects page.
 router.get("/projects", publicController.projects);
 
+// Phase-2 feedback §1 and §2 — the Clients page and the home logo carousel.
+router.get("/clients", publicController.clients);
+
 router.post("/favourites", validateRequest(publicFavouritesSchema), publicController.favourites);
 
 // The two unauthenticated writes. Both rate-limited per IP.
