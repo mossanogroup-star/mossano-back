@@ -17,6 +17,7 @@ import {
   publicApplicationProjectSchema,
   publicSelectionSchema,
   publicFavouritesSchema,
+  publicFavouritesPdfSchema,
 } from "./public.validation.js";
 import { enquirySubmitSchema } from "../enquiry/enquiry.validation.js";
 
@@ -54,6 +55,12 @@ router.get("/projects", publicController.projects);
 router.get("/clients", publicController.clients);
 
 router.post("/favourites", validateRequest(publicFavouritesSchema), publicController.favourites);
+// Phase-3 feedback — the shortlist as the PDF MOSSANO already sends.
+router.post(
+  "/favourites/pdf",
+  validateRequest(publicFavouritesPdfSchema),
+  publicController.favouritesPdf,
+);
 
 // The two unauthenticated writes. Both rate-limited per IP.
 router.post(

@@ -39,6 +39,14 @@ const publicFavouritesSchema = makeSchema({
   }),
 });
 
+/** The same shortlist, plus who it is for — printed on the PDF's header. */
+const publicFavouritesPdfSchema = makeSchema({
+  body: z.object({
+    slugs: z.array(z.string().trim().min(1).max(160)).max(100).default([]),
+    name: z.string().trim().max(120).optional(),
+  }),
+});
+
 export {
   publicShopSchema,
   publicStoneSchema,
@@ -48,4 +56,5 @@ export {
   publicApplicationProjectSchema,
   publicSelectionSchema,
   publicFavouritesSchema,
+  publicFavouritesPdfSchema,
 };

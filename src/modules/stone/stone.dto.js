@@ -1,4 +1,5 @@
 import { toMediaDto } from "../media/media.dto.js";
+import { countryLabel } from "../../config/countries.generated.js";
 import {
   AVAILABILITY_LABELS,
   RESERVABLE_AVAILABILITY,
@@ -6,6 +7,7 @@ import {
   APPLICATIONS,
   MATERIALS,
   COLOURS,
+  WHITE_SUBCATEGORIES,
   FINISHES,
   labelOf,
 } from "./stone.constants.js";
@@ -60,19 +62,23 @@ function isVerificationFresh(lastVerifiedAt) {
  */
 const ON_REQUEST = "On request";
 
+/**
+ * Phase-3 feedback dropped the approximate slab size and approximate area rows
+ * outright — a figure the customer has to treat as "approximate" is one they
+ * have to confirm anyway, so it was costing a line and buying nothing. Both
+ * values are still stored, still editable in the admin and still on the DTO.
+ */
 function buildSpecs(doc) {
   /**
-   * Phase-1 feedback §2 replaced the exact "Slab size" and "Slabs in lot" rows
-   * with one approximate size. The decoded dimensions stay as the fallback, so
-   * the 22 lots transcribed from the catalogues keep showing a size until the
-   * team types their own.
+   * Phase-3 feedback — the origin is a country now, with the free-text field
+   * left for the quarry or region. "Carrara" + `it` reads "Carrara, Italy";
+   * either alone still reads correctly on its own.
    */
-  const approxSize =
-    doc.approxSlabSize ||
-    (doc.slabLengthIn && doc.slabWidthIn ? `${doc.slabLengthIn} × ${doc.slabWidthIn} in` : "");
+  const countryName = countryLabel(doc.originCountry);
+  const originValue = [doc.origin, countryName].filter(Boolean).join(", ");
 
   return [
-    { label: "Origin", value: doc.origin || ON_REQUEST },
+    { label: "Origin", value: originValue || ON_REQUEST },
     {
       label: "Material",
       value: labelOf(MATERIALS, doc.material) || ON_REQUEST,
@@ -81,11 +87,6 @@ function buildSpecs(doc) {
     {
       label: "Thickness",
       value: doc.thicknessMm ? `${doc.thicknessMm} mm` : ON_REQUEST,
-    },
-    { label: "Approx. slab size", value: approxSize || ON_REQUEST },
-    {
-      label: "Approximate area",
-      value: doc.areaSqFt ? `${doc.areaSqFt.toLocaleString("en-IN")} sq ft` : ON_REQUEST,
     },
   ];
 }
@@ -115,7 +116,12 @@ function toPublicStoneDto(doc) {
     materialLabel: labelOf(MATERIALS, doc.material),
     colour: doc.colour ?? null,
     colourLabel: labelOf(COLOURS, doc.colour),
+    whiteSubcategory: doc.whiteSubcategory ?? null,
+    whiteSubcategoryLabel: labelOf(WHITE_SUBCATEGORIES, doc.whiteSubcategory),
     origin: doc.origin ?? null,
+    /** The flag is /flags/<code>.svg — no lookup table anywhere. */
+    originCountry: doc.originCountry ?? null,
+    originCountryLabel: countryLabel(doc.originCountry),
     finish: doc.finish ?? null,
     finishLabel: labelOf(FINISHES, doc.finish),
     thicknessMm: doc.thicknessMm ?? null,
@@ -187,6 +193,8 @@ function toStoneCardDto(doc) {
     mossanoCode: doc.mossanoCode,
     name: doc.name,
     origin: doc.origin ?? null,
+    originCountry: doc.originCountry ?? null,
+    originCountryLabel: countryLabel(doc.originCountry),
     colour: doc.colour ?? null,
     availability: doc.availability,
     availabilityLabel: AVAILABILITY_LABELS[doc.availability] ?? doc.availability,

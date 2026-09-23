@@ -15,6 +15,8 @@ import mongoose from "mongoose";
 const MEDIA_KINDS = [
   "slab", // a photograph of an actual slab in the lot
   "application", // a project/application photo: bathroom, bar, hotel lobby…
+  "look", // Shop by Look photography — the Exotic collection, chiefly
+  "process", // the home page's quarry-to-project slider, one image per step
   "video", // a slab video the customer can request
   "collection", // an Edit's cover imagery
   "reference", // a reference image a customer attached to a sourcing enquiry

@@ -10,12 +10,14 @@
  * are absent by default and render "On request". Never default them.
  */
 import mongoose from "mongoose";
+import { COUNTRY_CODES } from "../../config/countries.generated.js";
 import {
   AVAILABILITY,
   LOOK_SLUGS,
   APPLICATION_SLUGS,
   MATERIAL_SLUGS,
   COLOUR_SLUGS,
+  WHITE_SUBCATEGORY_SLUGS,
   FINISH_SLUGS,
 } from "./stone.constants.js";
 
@@ -65,8 +67,17 @@ const StoneSchema = new mongoose.Schema(
 
     material: { type: String, enum: MATERIAL_SLUGS, index: true },
     colour: { type: String, enum: COLOUR_SLUGS, index: true },
+    /** Phase-3 feedback — the sub-category under White. */
+    whiteSubcategory: { type: String, enum: WHITE_SUBCATEGORY_SLUGS, index: true },
 
     // Fields the client's catalogues do not contain. Absent, not guessed.
+    /**
+     * ISO 3166-1 alpha-2, from countries.generated.js — which is generated from
+     * the flag files, so a stored code always has a flag to render. `origin`
+     * stays beside it for the quarry or region ("Carrara"), which a country
+     * code cannot carry.
+     */
+    originCountry: { type: String, enum: COUNTRY_CODES, index: true },
     origin: { type: String, trim: true, index: true },
     finish: { type: String, enum: FINISH_SLUGS },
     thicknessMm: { type: Number, min: 0 },

@@ -5,8 +5,10 @@ import {
   APPLICATION_SLUGS,
   MATERIAL_SLUGS,
   COLOUR_SLUGS,
+  WHITE_SUBCATEGORY_SLUGS,
   FINISH_SLUGS,
 } from "./stone.constants.js";
+import { COUNTRY_CODES } from "../../config/countries.generated.js";
 import { SORTS } from "./stone.repository.js";
 import {
   objectIdSchema,
@@ -51,6 +53,8 @@ const stoneBodyCreateSchema = z.object({
 
   material: z.enum(MATERIAL_SLUGS).optional(),
   colour: z.enum(COLOUR_SLUGS).optional(),
+  whiteSubcategory: z.enum(WHITE_SUBCATEGORY_SLUGS).optional(),
+  originCountry: z.enum(COUNTRY_CODES).optional(),
   origin: optionalText(80),
   finish: z.enum(FINISH_SLUGS).optional(),
   thicknessMm: z.number().min(0).max(300).optional(),
@@ -84,11 +88,13 @@ const stoneFilters = {
   search: searchSchema,
   material: csvQuerySchema,
   colour: csvQuerySchema,
+  whiteSubcategory: csvQuerySchema,
   look: csvQuerySchema,
   application: csvQuerySchema,
   availability: csvQuerySchema,
   finish: csvQuerySchema,
   origin: searchSchema,
+  originCountry: csvQuerySchema,
   featured: booleanQuerySchema,
   minAreaSqFt: intQuerySchema(0),
   sort: z.enum(Object.keys(SORTS)).optional(),

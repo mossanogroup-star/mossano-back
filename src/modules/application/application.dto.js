@@ -34,7 +34,13 @@ function toPublicApplicationDto(doc, stones) {
     areaLabel: doc.areaSqFt ? `${doc.areaSqFt.toLocaleString("en-IN")} sq ft` : null,
 
     isFeatured: Boolean(doc.isFeatured),
-    href: `/application/${doc.application}/${doc.slug}`,
+    /**
+     * Phase-3 feedback — Projects and Shop by Application are two tabs and must
+     * read as two tabs. A project's own address is under /projects now; the old
+     * /application/:slug/:projectSlug route still resolves, because links to it
+     * have already been forwarded.
+     */
+    href: `/projects/${doc.slug}`,
     // The whole point of the module: the room leads back to the lot.
     stones: stones ? stones.map(toStoneCardDto) : undefined,
     stoneCount: stones?.length ?? (doc.stones ?? []).length,

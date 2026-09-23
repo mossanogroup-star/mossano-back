@@ -44,6 +44,13 @@ const LOOKS = [
   { slug: "dark-moody", label: "Dark & Moody" },
   { slug: "green-statement", label: "Green Statement" },
   { slug: "bookmatch", label: "Bookmatch" },
+  /**
+   * Phase-3 feedback — "exotic collection under Look". It was a colour, which
+   * it never was: exotic describes how rare the stone is, not what shade it is,
+   * and a lot can be exotic *and* white. As a look it can carry its own
+   * photography, which is where the client wants to upload it.
+   */
+  { slug: "exotic", label: "Exotic" },
 ];
 
 /** Website §7 and Admin Scope §4 — the two lists are deliberately identical. */
@@ -74,26 +81,44 @@ const MATERIALS = [
 ];
 
 /**
- * Phase-1 feedback §2 asks for White, Exotic, Onyx, Travertine and Blue — the
- * client's own vocabulary, and closer to the brochure's "White Marble" and
- * "Exotic Marble" collections than to a colour wheel.
+ * Phase-3 feedback names the ten, in this order. "Exotic" left the list and
+ * became a Look — see LOOKS above — because it describes rarity rather than a
+ * colour, and green, brown and red came back for the same reason they were cut
+ * in Phase 1: the catalogue now has stock to put in them.
  *
- * Beige, black and grey are kept below them because every one of the seeded lots
- * carries one: `colour` is an enum, so removing a value already in the database
- * would make those records fail validation the next time anyone saved one. The
- * five that went (green, brown, gold, red, multi) were trade vocabulary nothing
- * had ever been classified as. FilterRail hides any option with a zero count, so
- * the rail shows only what the catalogue can actually populate.
+ * ⚠ `colour` is an enum on the model, so any lot already saved as `exotic`
+ * fails validation the next time it is written. scripts/migrateExoticColour.js
+ * re-tags those lots as the Exotic look before this list ships.
  */
 const COLOURS = [
-  { slug: "white", label: "White" },
-  { slug: "exotic", label: "Exotic" },
-  { slug: "onyx", label: "Onyx" },
-  { slug: "travertine", label: "Travertine" },
-  { slug: "blue", label: "Blue" },
   { slug: "beige", label: "Beige" },
   { slug: "black", label: "Black" },
   { slug: "grey", label: "Grey" },
+  { slug: "white", label: "White" },
+  { slug: "blue", label: "Blue" },
+  { slug: "green", label: "Green" },
+  { slug: "brown", label: "Brown" },
+  { slug: "red", label: "Red" },
+  { slug: "onyx", label: "Onyx" },
+  { slug: "travertine", label: "Travertine" },
+];
+
+/**
+ * Phase-3 feedback — "in white we need sub category". White is most of what
+ * MOSSANO imports, so one White filter returns half the catalogue; these are
+ * the client's own six names for what is actually different about those lots.
+ *
+ * Only meaningful on a white lot. Nothing enforces that — a sub-category on a
+ * black lot is a data-entry mistake, not a security problem, and the filter
+ * only ever appears underneath White.
+ */
+const WHITE_SUBCATEGORIES = [
+  { slug: "statuario", label: "Statuario" },
+  { slug: "calacatta", label: "Calacatta" },
+  { slug: "michelangelo", label: "Michelangelo" },
+  { slug: "volakas", label: "Volakas" },
+  { slug: "angilo-white", label: "Angilo White" },
+  { slug: "vietnam-white", label: "Vietnam White" },
 ];
 
 const FINISHES = [
@@ -111,6 +136,7 @@ const LOOK_SLUGS = slugsOf(LOOKS);
 const APPLICATION_SLUGS = slugsOf(APPLICATIONS);
 const MATERIAL_SLUGS = slugsOf(MATERIALS);
 const COLOUR_SLUGS = slugsOf(COLOURS);
+const WHITE_SUBCATEGORY_SLUGS = slugsOf(WHITE_SUBCATEGORIES);
 const FINISH_SLUGS = slugsOf(FINISHES);
 
 const labelOf = (list, slug) => list.find((x) => x.slug === slug)?.label ?? null;
@@ -124,11 +150,13 @@ export {
   APPLICATIONS,
   MATERIALS,
   COLOURS,
+  WHITE_SUBCATEGORIES,
   FINISHES,
   LOOK_SLUGS,
   APPLICATION_SLUGS,
   MATERIAL_SLUGS,
   COLOUR_SLUGS,
+  WHITE_SUBCATEGORY_SLUGS,
   FINISH_SLUGS,
   labelOf,
 };

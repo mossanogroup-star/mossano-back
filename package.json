@@ -15,7 +15,11 @@
     "prune:media": "node scripts/pruneOrphanMedia.js",
     "format:check": "prettier --check .",
     "measure:hero": "node scripts/measureHeroLegibility.js",
-    "seed:phase2": "node scripts/seedPhase2.js"
+    "seed:phase2": "node scripts/seedPhase2.js",
+    "migrate:exotic": "node scripts/migrateExoticColour.js",
+    "gen:countries": "node scripts/generateCountries.js",
+    "migrate:origin": "node scripts/migrateOriginCountry.js",
+    "import:process": "node scripts/importProcessImages.js"
   },
   "dependencies": {
     "bcryptjs": "^3.0.2",

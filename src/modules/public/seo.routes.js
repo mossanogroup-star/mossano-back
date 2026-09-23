@@ -120,7 +120,7 @@ router.get(
         priority: "0.7",
       })),
       ...projects.map((p) => ({
-        loc: `${base}/application/projects/${p.slug}`,
+        loc: `${base}/projects/${p.slug}`,
         lastmod: p.updatedAt,
         changefreq: "monthly",
         priority: "0.6",

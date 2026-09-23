@@ -37,7 +37,9 @@ function buildFilter({
   search,
   material,
   colour,
+  whiteSubcategory,
   origin,
+  originCountry,
   look,
   application,
   availability,
@@ -57,11 +59,13 @@ function buildFilter({
   // Array filters accept one value or many: ?look=dramatic,dark-moody
   if (material?.length) filter.material = { $in: material };
   if (colour?.length) filter.colour = { $in: colour };
+  if (whiteSubcategory?.length) filter.whiteSubcategory = { $in: whiteSubcategory };
   if (look?.length) filter.looks = { $in: look };
   if (application?.length) filter.applications = { $in: application };
   if (availability?.length) filter.availability = { $in: availability };
   if (finish?.length) filter.finish = { $in: finish };
 
+  if (originCountry?.length) filter.originCountry = { $in: originCountry };
   if (origin) filter.origin = new RegExp(escapeRegex(origin), "i");
   if (minAreaSqFt) filter.areaSqFt = { $gte: minAreaSqFt };
   if (ids?.length) filter._id = { $in: ids };
@@ -184,26 +188,37 @@ const stoneRepository = {
       { $project: { _id: 0, value: "$_id", count: 1 } },
     ];
 
-    const [material, colour, finish, availability, looks, applications, origin] = await Promise.all(
-      [
-        StoneModel.aggregate(countBy("material")),
-        StoneModel.aggregate(countBy("colour")),
-        StoneModel.aggregate(countBy("finish")),
-        StoneModel.aggregate(countBy("availability")),
-        StoneModel.aggregate(countByArray("looks")),
-        StoneModel.aggregate(countByArray("applications")),
-        StoneModel.aggregate(countBy("origin")),
-      ],
-    );
-
-    return {
+    const [
       material,
       colour,
+      whiteSubcategory,
       finish,
       availability,
       looks,
       applications,
-      origin,
+      originCountry,
+    ] = await Promise.all([
+      StoneModel.aggregate(countBy("material")),
+      StoneModel.aggregate(countBy("colour")),
+      StoneModel.aggregate(countBy("whiteSubcategory")),
+      StoneModel.aggregate(countBy("finish")),
+      StoneModel.aggregate(countBy("availability")),
+      StoneModel.aggregate(countByArray("looks")),
+      StoneModel.aggregate(countByArray("applications")),
+      StoneModel.aggregate(countBy("originCountry")),
+    ]);
+
+    return {
+      material,
+      colour,
+      whiteSubcategory,
+      finish,
+      availability,
+      looks,
+      applications,
+      // Facet on the country code, not the free-text origin: "Carrara, Italy"
+      // and "Italy" were two buckets, which is not a filter.
+      originCountry,
     };
   },
 

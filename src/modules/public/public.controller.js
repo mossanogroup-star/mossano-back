@@ -15,11 +15,14 @@ import { buildSelectionPdf } from "../../utils/pdf/selectionPdf.js";
 import { sendSuccess } from "../../utils/response.js";
 import { asyncHandler } from "../../utils/asyncHandler.js";
 import { brand } from "../../config/brand.js";
+import { toLookContentDto } from "../look/look.dto.js";
+import { COUNTRIES } from "../../config/countries.generated.js";
 import {
   LOOKS,
   APPLICATIONS,
   MATERIALS,
   COLOURS,
+  WHITE_SUBCATEGORIES,
   FINISHES,
   AVAILABILITY_LABELS,
 } from "../stone/stone.constants.js";
@@ -43,6 +46,10 @@ const config = asyncHandler(async (_req, res) =>
         applications: APPLICATIONS,
         materials: MATERIALS,
         colours: COLOURS,
+        whiteSubcategories: WHITE_SUBCATEGORIES,
+        // Generated from the flag files — see countries.generated.js. The admin
+        // origin picker and every flag on the site read this one list.
+        countries: COUNTRIES,
         finishes: FINISHES,
         availability: AVAILABILITY_LABELS,
       },
@@ -73,6 +80,10 @@ const home = asyncHandler(async (_req, res) => {
         : null,
       looks: data.looks,
       applications: data.applications,
+      // Phase-3 feedback — the flag row, from what is actually in stock.
+      sourceCountries: data.sourceCountries,
+      // Phase-3 feedback — the full-screen quarry-to-project slider.
+      process: data.process,
     },
   });
 });
@@ -123,13 +134,15 @@ const looks = asyncHandler(async (_req, res) =>
 );
 
 const look = asyncHandler(async (req, res) => {
-  const { items, slug, label, ...meta } = await publicService.look(
+  const { items, slug, label, content, ...meta } = await publicService.look(
     req.validated.params.slug,
     req.validated.query,
   );
   return sendSuccess(res, {
     data: items.map(toStoneCardDto),
-    meta: { ...meta, slug, label },
+    // Phase-3 feedback — the look's own photography and copy, where the team
+    // has uploaded any.
+    meta: { ...meta, slug, label, content: toLookContentDto(content, { slug, label }) },
   });
 });
 
@@ -161,6 +174,34 @@ const applicationProject = asyncHandler(async (req, res) => {
 const favourites = asyncHandler(async (req, res) => {
   const stones = await publicService.favourites(req.validated.body.slugs);
   return sendSuccess(res, { data: stones.map(toStoneCardDto) });
+});
+
+/**
+ * Phase-3 feedback — "wish list demo in pdf".
+ *
+ * The private-selection PDF, built from a shortlist instead of from a curated
+ * selection: same layout, same slab photography, same footer, so what a
+ * customer forwards looks like what MOSSANO sends. Nothing is stored — the
+ * shortlist lives on the customer's device and this only renders it.
+ */
+const favouritesPdf = asyncHandler(async (req, res) => {
+  const stones = await publicService.favourites(req.validated.body.slugs);
+
+  const buffer = await buildSelectionPdf(
+    {
+      title: "Your Shortlist",
+      customerName: req.validated.body.name?.trim() || "—",
+      projectName: null,
+      preparedOn: new Date(),
+      stones: stones.map(toPublicStoneDto),
+    },
+    { whatsappNumber: brand.whatsappNumber, email: brand.email },
+  );
+
+  res.setHeader("Content-Type", "application/pdf");
+  res.setHeader("Content-Disposition", 'attachment; filename="MOSSANO-Shortlist.pdf"');
+  res.setHeader("Cache-Control", "no-store");
+  return res.send(buffer);
 });
 
 /**
@@ -266,6 +307,7 @@ const publicController = {
   projects,
   clients,
   favourites,
+  favouritesPdf,
   uploadReferenceImages,
   submitEnquiry,
   selection,

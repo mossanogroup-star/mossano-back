@@ -11,6 +11,11 @@ import { editRepository } from "../edit/edit.repository.js";
 import { editService } from "../edit/edit.service.js";
 import { applicationRepository } from "../application/application.repository.js";
 import { applicationService } from "../application/application.service.js";
+import { lookService } from "../look/look.service.js";
+import { toMediaDto } from "../media/media.dto.js";
+import { countryLabel } from "../../config/countries.generated.js";
+import { MediaModel } from "../media/media.model.js";
+import { PROCESS_STEPS, PROCESS_SLUGS } from "./process.constants.js";
 import { LOOKS, APPLICATIONS, labelOf } from "../stone/stone.constants.js";
 import { AppError } from "../../utils/AppError.js";
 import { env } from "../../config/env.js";
@@ -62,7 +67,16 @@ const publicService = {
    * by Application — the whole page in one pass.
    */
   async home() {
-    const [featured, liveEdits, lookIndex, applicationIndex, newest, hero] = await Promise.all([
+    const [
+      featured,
+      liveEdits,
+      lookIndex,
+      applicationIndex,
+      newest,
+      hero,
+      sourceCountries,
+      process,
+    ] = await Promise.all([
       stoneRepository.findMany({
         ...PUBLIC_SCOPE,
         featured: true,
@@ -79,6 +93,8 @@ const publicService = {
         page: 1,
       }),
       this.resolveHero(),
+      this.sourceCountries(),
+      this.process(),
     ]);
 
     const currentEdit = liveEdits.find((e) => e.status === "current") ?? null;
@@ -92,7 +108,49 @@ const publicService = {
       hero,
       looks: lookIndex,
       applications: applicationIndex,
+      sourceCountries,
+      process,
     };
+  },
+
+  /**
+   * Phase-3 feedback — the home page's quarry-to-project slider.
+   *
+   * The five steps are fixed copy; the photography comes from the media
+   * library, matched on the step slug stored in `caption`. A step whose image
+   * has not been uploaded is dropped rather than rendered empty — a full-screen
+   * slide with no photograph is a hole in the page.
+   */
+  async process() {
+    const images = await MediaModel.find({
+      kind: "process",
+      isDeleted: false,
+      caption: { $in: PROCESS_SLUGS },
+    }).lean();
+
+    const bySlug = new Map(images.map((image) => [image.caption, image]));
+
+    return PROCESS_STEPS.map((step) => ({
+      ...step,
+      image: toMediaDto(bySlug.get(step.slug)),
+    })).filter((step) => step.image);
+  },
+
+  /**
+   * Phase-3 feedback — the flag rows on the home and About pages show the
+   * countries MOSSANO actually holds stock from, rather than a list written
+   * into the page. Ordered by how much of the catalogue comes from each.
+   */
+  async sourceCountries() {
+    const facets = await stoneRepository.facets();
+    return (facets.originCountry ?? [])
+      .filter((bucket) => bucket.value)
+      .map((bucket) => ({
+        code: bucket.value,
+        label: countryLabel(bucket.value),
+        count: bucket.count,
+      }))
+      .filter((country) => country.label);
   },
 
   /** Website §3 — the Stone Shop, with the counts its filter rail needs. */
@@ -147,7 +205,10 @@ const publicService = {
    * decide instead of linking to nothing.
    */
   async lookIndex() {
-    const facets = await stoneRepository.facets();
+    const [facets, contentBySlug] = await Promise.all([
+      stoneRepository.facets(),
+      lookService.publishedContentBySlug(),
+    ]);
     const countBy = new Map((facets.looks ?? []).map((l) => [l.value, l.count]));
 
     const leads = await Promise.all(
@@ -164,14 +225,26 @@ const publicService = {
     return LOOKS.map(({ slug, label }, i) => {
       const lead = leads[i].items[0] ?? null;
       const count = countBy.get(slug) ?? 0;
+
+      /**
+       * Phase-3 feedback — a look the team has photographed shows its own
+       * picture. Borrowing a tagged stone's lead image stays the fallback, and
+       * it is the only thing Exotic could have done before: its collection is
+       * the point, not whichever lot happened to sort first.
+       */
+      const content = contentBySlug.get(slug);
+      const ownImage = toMediaDto(content?.images?.[0]);
+
       return {
         slug,
         label,
         count,
-        isEmpty: count === 0,
+        // A look with its own photography is worth opening even with nothing
+        // tagged yet — the pictures are the page.
+        isEmpty: count === 0 && !ownImage,
         href: `/look/${slug}`,
-        image: lead?.primaryImageUrl ?? null,
-        imageAlt: lead ? `${lead.name} — ${label}` : null,
+        image: ownImage?.url ?? lead?.primaryImageUrl ?? null,
+        imageAlt: ownImage ? (ownImage.alt ?? label) : lead ? `${lead.name} — ${label}` : null,
       };
     });
   },
@@ -180,13 +253,16 @@ const publicService = {
     const label = labelOf(LOOKS, slug);
     if (!label) throw new AppError("Unknown look", 404);
 
-    const result = await stoneRepository.findMany({
-      ...query,
-      ...PUBLIC_SCOPE,
-      look: [slug],
-      limit: query.limit ?? 48,
-    });
-    return { slug, label, ...result };
+    const [result, content] = await Promise.all([
+      stoneRepository.findMany({
+        ...query,
+        ...PUBLIC_SCOPE,
+        look: [slug],
+        limit: query.limit ?? 48,
+      }),
+      lookService.getContent(slug),
+    ]);
+    return { slug, label, content, ...result };
   },
 
   applicationIndex() {
