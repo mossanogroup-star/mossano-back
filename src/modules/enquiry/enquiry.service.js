@@ -58,6 +58,8 @@ const enquiryService = {
 
     const created = await enquiryRepository.create({
       ...body,
+      // The model requires a name; only the image-only uploader omits one.
+      name: body.name || "Website visitor",
       ...(await attachStone(body)),
       reference,
       status: "new",

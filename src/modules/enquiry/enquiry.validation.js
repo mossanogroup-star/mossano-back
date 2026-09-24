@@ -40,11 +40,15 @@ const sourcingBriefSchema = z.object({
  * Website §11's contact form and §8's sourcing brief both ask for details, and
  * an enquiry with neither an email nor a phone number is not a lead — it is a
  * message nobody can answer.
+ *
+ * The exception is "reference_image", the floating uploader: Phase-3 feedback,
+ * the client wanted it to be the photograph and nothing else. It needs an image
+ * instead, and may arrive without a name or any way to reply.
  */
 const enquirySubmitBodySchema = z
   .object({
     type: z.enum(ENQUIRY_TYPES).optional().default("general"),
-    name: z.string().trim().min(1, "Please give your name").max(120),
+    name: z.string().trim().max(120).optional(),
     email: emailSchema().optional(),
     phone: phoneSchema.optional(),
     company: optionalText(160),
@@ -62,9 +66,17 @@ const enquirySubmitBodySchema = z
 
     sourcePath: optionalText(300),
   })
-  .refine((v) => Boolean(v.email || v.phone), {
+  .refine((v) => v.type === "reference_image" || Boolean(v.name), {
+    message: "Please give your name",
+    path: ["name"],
+  })
+  .refine((v) => v.type === "reference_image" || Boolean(v.email || v.phone), {
     message: "Add an email address or a phone number so MOSSANO can reply",
     path: ["email"],
+  })
+  .refine((v) => v.type !== "reference_image" || Boolean(v.sourcing?.referenceImages?.length), {
+    message: "Add at least one reference image",
+    path: ["sourcing"],
   });
 
 const enquirySubmitSchema = makeSchema({ body: enquirySubmitBodySchema });

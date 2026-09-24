@@ -16,6 +16,7 @@ const ENQUIRY_TYPES = [
   "register_interest", // Upcoming Edit (Website §2)
   "selection", // raised from inside a private selection (Website §9)
   "chatbot", // the scripted assistant (Website Notes, second drop)
+  "reference_image", // the "Upload your reference image" launcher on every page (Phase-3)
 ];
 
 const ENQUIRY_TYPE_LABELS = {
@@ -28,6 +29,7 @@ const ENQUIRY_TYPE_LABELS = {
   register_interest: "Register interest",
   selection: "From a private selection",
   chatbot: "Chatbot",
+  reference_image: "Reference image",
 };
 
 /**
@@ -56,7 +58,14 @@ const ENQUIRY_PIPELINE = ["new", "contacted", "interested", "reserved", "purchas
  * this afternoon is not the same as a general "tell me more", and the admin
  * dashboard sorts on this.
  */
-const HIGH_INTENT_TYPES = ["reserve", "prebook", "selection", "sourcing", "chatbot"];
+const HIGH_INTENT_TYPES = [
+  "reserve",
+  "prebook",
+  "selection",
+  "sourcing",
+  "chatbot",
+  "reference_image",
+];
 
 export {
   ENQUIRY_TYPES,
