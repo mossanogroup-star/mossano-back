@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { ENQUIRY_TYPES, ENQUIRY_STATUSES } from "./enquiry.constants.js";
-import { MATERIAL_SLUGS, COLOUR_SLUGS, APPLICATION_SLUGS } from "../stone/stone.constants.js";
+import { MATERIAL_SLUGS, COLOUR_SLUGS, isApplicationSlug } from "../stone/stone.constants.js";
 import {
   objectIdSchema,
   searchSchema,
@@ -22,7 +22,7 @@ const sourcingBriefSchema = z.object({
   material: z.enum(MATERIAL_SLUGS).optional(),
   colour: z.enum(COLOUR_SLUGS).optional(),
   /** Phase-2 feedback §7 — the chatbot's "what is it for" step. */
-  application: z.enum(APPLICATION_SLUGS).optional(),
+  application: z.string().refine(isApplicationSlug, "Unknown application").optional(),
   thickness: optionalText(60),
   quantity: optionalText(60),
   budget: optionalText(60),

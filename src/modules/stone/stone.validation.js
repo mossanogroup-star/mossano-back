@@ -2,7 +2,7 @@ import { z } from "zod";
 import {
   AVAILABILITY,
   LOOK_SLUGS,
-  APPLICATION_SLUGS,
+  isApplicationSlug,
   MATERIAL_SLUGS,
   COLOUR_SLUGS,
   WHITE_SUBCATEGORY_SLUGS,
@@ -67,7 +67,11 @@ const stoneBodyCreateSchema = z.object({
   approxSlabSize: optionalText(60),
 
   looks: z.array(z.enum(LOOK_SLUGS)).max(6).optional().default([]),
-  applications: z.array(z.enum(APPLICATION_SLUGS)).max(7).optional().default([]),
+  applications: z
+    .array(z.string().refine(isApplicationSlug, "Unknown application"))
+    .max(40)
+    .optional()
+    .default([]),
 
   availability: z.enum(AVAILABILITY).optional().default("verification_required"),
   description: optionalText(4000),

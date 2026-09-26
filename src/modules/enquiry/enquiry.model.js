@@ -8,7 +8,7 @@
  */
 import mongoose from "mongoose";
 import { ENQUIRY_TYPES, ENQUIRY_STATUSES } from "./enquiry.constants.js";
-import { MATERIAL_SLUGS, COLOUR_SLUGS, APPLICATION_SLUGS } from "../stone/stone.constants.js";
+import { MATERIAL_SLUGS, COLOUR_SLUGS } from "../stone/stone.constants.js";
 
 /** A dated note the team adds while working the lead. */
 const NoteSchema = new mongoose.Schema(
@@ -31,7 +31,7 @@ const SourcingBriefSchema = new mongoose.Schema(
      * The team's alert carries it, because "5,000 sq ft" means a different
      * conversation for a hotel lobby than for a bathroom.
      */
-    application: { type: String, enum: APPLICATION_SLUGS },
+    application: { type: String },
     /** Free text: the customer may say "20mm", "2cm" or "20-30mm". */
     thickness: { type: String, trim: true },
     quantity: { type: String, trim: true },

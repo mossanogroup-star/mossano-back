@@ -1,5 +1,9 @@
 import { applicationService } from "./application.service.js";
-import { toAdminApplicationDto, toApplicationContentDto } from "./application.dto.js";
+import {
+  toAdminApplicationDto,
+  toApplicationContentDto,
+  toProjectVideoDto,
+} from "./application.dto.js";
 import { APPLICATIONS, labelOf } from "../stone/stone.constants.js";
 import { sendSuccess } from "../../utils/response.js";
 import { asyncHandler } from "../../utils/asyncHandler.js";
@@ -54,7 +58,11 @@ const remove = asyncHandler(async (req, res) => {
 const listContent = asyncHandler(async (_req, res) => {
   const rows = await applicationService.listContent();
   return sendSuccess(res, {
-    data: rows.map(({ slug, label, content }) => toApplicationContentDto(content, { slug, label })),
+    data: rows.map(({ slug, label, builtIn, content }) => ({
+      ...toApplicationContentDto(content, { slug, label }),
+      label,
+      builtIn,
+    })),
   });
 });
 
@@ -70,7 +78,53 @@ const saveContent = asyncHandler(async (req, res) => {
   });
 });
 
+// --- Phase-3 feedback: the Projects page's Videos tab ---
+
+const listVideos = asyncHandler(async (_req, res) => {
+  const videos = await applicationService.listVideos({ publishedOnly: false });
+  return sendSuccess(res, { data: videos.map(toProjectVideoDto) });
+});
+
+const createVideo = asyncHandler(async (req, res) => {
+  const video = await applicationService.createVideo(req.validated.body, req.user);
+  return sendSuccess(res, {
+    statusCode: 201,
+    message: "Video added",
+    data: toProjectVideoDto(video),
+  });
+});
+
+const updateVideo = asyncHandler(async (req, res) => {
+  const video = await applicationService.updateVideo(
+    req.validated.params.id,
+    req.validated.body,
+    req.user,
+  );
+  return sendSuccess(res, { message: "Updated", data: toProjectVideoDto(video) });
+});
+
+const removeVideo = asyncHandler(async (req, res) => {
+  const result = await applicationService.removeVideo(req.validated.params.id);
+  return sendSuccess(res, { message: "Removed", data: result });
+});
+
+const createCategory = asyncHandler(async (req, res) => {
+  const category = await applicationService.createCategory(req.validated.body, req.user);
+  return sendSuccess(res, { statusCode: 201, message: `${category.label} added`, data: category });
+});
+
+const removeCategory = asyncHandler(async (req, res) => {
+  const result = await applicationService.removeCategory(req.validated.params.slug);
+  return sendSuccess(res, { message: "Removed", data: result });
+});
+
 const applicationController = {
+  createCategory,
+  removeCategory,
+  listVideos,
+  createVideo,
+  updateVideo,
+  removeVideo,
   list,
   index,
   get,

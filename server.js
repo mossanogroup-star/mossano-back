@@ -3,11 +3,13 @@ import { createApp } from "./src/app.js";
 import { env } from "./src/config/env.js";
 import { logger } from "./src/config/logger.js";
 import { connectDb } from "./src/config/db.js";
+import { applicationService } from "./src/modules/application/application.service.js";
 import { runStartupChecks } from "./src/config/bootstrap.js";
 
 async function bootstrap() {
   await connectDb();
   await runStartupChecks();
+  await applicationService.loadCategories();
 
   // createApp is async because in development it starts Vite in middleware mode
   // so the storefront hot-reloads through this same server. See src/ssr/.

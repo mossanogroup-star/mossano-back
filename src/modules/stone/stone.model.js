@@ -14,7 +14,6 @@ import { COUNTRY_CODES } from "../../config/countries.generated.js";
 import {
   AVAILABILITY,
   LOOK_SLUGS,
-  APPLICATION_SLUGS,
   MATERIAL_SLUGS,
   COLOUR_SLUGS,
   WHITE_SUBCATEGORY_SLUGS,
@@ -99,9 +98,9 @@ const StoneSchema = new mongoose.Schema(
     approxSlabSize: { type: String, trim: true },
 
     looks: { type: [String], enum: LOOK_SLUGS, default: [], index: true },
+    // No enum: applications can be added from the admin. Validated in zod.
     applications: {
       type: [String],
-      enum: APPLICATION_SLUGS,
       default: [],
       index: true,
     },

@@ -65,13 +65,25 @@ const cloudinaryProvider = {
   derive(
     storageKey,
     resourceType = "image",
-    { width, height, crop = "limit", trim = false, upscale = false } = {},
+    {
+      width,
+      height,
+      crop = "limit",
+      trim = false,
+      upscale = false,
+      poster = false,
+      mute = false,
+    } = {},
   ) {
     if (!env.CLOUDINARY_CONFIGURED || !storageKey) return null;
     return cloudinary.url(storageKey, {
       resource_type: resourceType,
       secure: true,
+      // A video's still frame, as a JPEG — without it `f_auto` on a video URL
+      // returns another video, which a <video poster> cannot show.
+      ...(poster ? { format: "jpg" } : {}),
       transformation: [
+        ...(poster ? [{ start_offset: "1" }] : []),
         // Several slabs kept a strip of the photographer's backdrop when they
         // were cropped from the catalogue — invisible on a card, glaring on a
         // full-bleed hero. Tolerance 45 was measured: 35 left a column behind,
@@ -84,6 +96,8 @@ const cloudinaryProvider = {
         // docs/CLIENT-QUESTIONS.md.
         ...(upscale ? [{ effect: "upscale" }] : []),
         { width, height, crop },
+        // Tile previews loop silently; dropping the track saves the bytes.
+        ...(mute ? [{ audio_codec: "none" }] : []),
         { quality: "auto", fetch_format: "auto" },
       ],
     });

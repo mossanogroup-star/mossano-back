@@ -50,6 +50,8 @@ router.get(
 
 // Phase-1 feedback §6 — the landmark Projects page.
 router.get("/projects", publicController.projects);
+// Phase-3 feedback — the Projects page's Videos tab.
+router.get("/projects/videos", publicController.projectVideos);
 
 // Phase-2 feedback §1 and §2 — the Clients page and the home logo carousel.
 router.get("/clients", publicController.clients);

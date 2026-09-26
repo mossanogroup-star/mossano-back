@@ -309,6 +309,11 @@ const publicService = {
     return applicationService.projects();
   },
 
+  /** Phase-3 feedback — the Projects page's Videos tab. */
+  projectVideos() {
+    return applicationService.listVideos();
+  },
+
   /**
    * Website §5 — resolves the device's stored slugs into cards.
    *

@@ -1,5 +1,9 @@
 import { z } from "zod";
-import { APPLICATION_SLUGS } from "../stone/stone.constants.js";
+import { isApplicationSlug } from "../stone/stone.constants.js";
+
+const applicationSlugSchema = z
+  .string()
+  .refine(isApplicationSlug, { message: "Choose an application category" });
 import { PROJECT_SECTOR_SLUGS } from "./application.model.js";
 import {
   objectIdSchema,
@@ -15,11 +19,18 @@ import {
   toUpdateSchema,
 } from "../../utils/resourceValidationHelpers.js";
 
+const instagramUrlSchema = z
+  .string()
+  .trim()
+  .url("Enter a full Instagram URL")
+  .refine((u) => /^https?:\/\/(www\.)?instagram\.com\//i.test(u), {
+    message: "That is not an instagram.com link",
+  })
+  .max(500);
+
 const applicationBodyCreateSchema = z.object({
   title: z.string().trim().min(1, "Give this a title").max(160),
-  application: z.enum(APPLICATION_SLUGS, {
-    message: "Choose an application category",
-  }),
+  application: applicationSlugSchema,
   projectName: optionalText(160),
   location: optionalText(160),
   architect: optionalText(160),
@@ -35,19 +46,7 @@ const applicationBodyCreateSchema = z.object({
    * Phase-2 feedback §3. Restricted to instagram.com so a paste of the wrong
    * link fails here rather than rendering an empty embed on the live page.
    */
-  instagramUrls: z
-    .array(
-      z
-        .string()
-        .trim()
-        .url("Enter a full Instagram URL")
-        .refine((u) => /^https?:\/\/(www\.)?instagram\.com\//i.test(u), {
-          message: "That is not an instagram.com link",
-        })
-        .max(500),
-    )
-    .max(12)
-    .optional(),
+  instagramUrls: z.array(instagramUrlSchema).max(12).optional(),
   links: z
     .array(
       z.object({
@@ -88,7 +87,7 @@ const applicationDeleteSchema = makeSchema({ params: idParamSchema });
 
 /** Phase-2 feedback §5 — an application page's own content. */
 const applicationContentSaveSchema = makeSchema({
-  params: z.object({ application: z.enum(APPLICATION_SLUGS) }),
+  params: z.object({ application: applicationSlugSchema }),
   body: z.object({
     headline: optionalText(120),
     description: optionalText(4000),
@@ -97,7 +96,43 @@ const applicationContentSaveSchema = makeSchema({
   }),
 });
 
+/** Phase-3 feedback — a reel on the Projects page's Videos tab. */
+const projectVideoBodySchema = z
+  .object({
+    title: z.string().trim().min(1, "Give this a title").max(160),
+    instagramUrl: instagramUrlSchema.optional(),
+    video: objectIdSchema.optional(),
+    location: optionalText(160),
+    isPublished: z.boolean().optional().default(true),
+  })
+  .refine((b) => b.instagramUrl || b.video, {
+    message: "Upload a video or paste an Instagram link",
+    path: ["video"],
+  });
+
+/** PATCH takes the whole record, as the admin form sends it, so a cleared
+    field is cleared rather than left as it was. */
+const projectVideoCreateSchema = makeSchema({ body: projectVideoBodySchema });
+const projectVideoUpdateSchema = makeSchema({
+  params: idParamSchema,
+  body: projectVideoBodySchema,
+});
+const projectVideoDeleteSchema = makeSchema({ params: idParamSchema });
+
+/** A new Shop by Application category. */
+const applicationCategoryCreateSchema = makeSchema({
+  body: z.object({ label: z.string().trim().min(2, "Name the application").max(60) }),
+});
+const applicationCategoryDeleteSchema = makeSchema({
+  params: z.object({ slug: applicationSlugSchema }),
+});
+
 export {
+  applicationCategoryCreateSchema,
+  applicationCategoryDeleteSchema,
+  projectVideoCreateSchema,
+  projectVideoUpdateSchema,
+  projectVideoDeleteSchema,
   applicationListSchema,
   applicationCreateSchema,
   applicationGetSchema,

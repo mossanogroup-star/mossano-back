@@ -3,7 +3,11 @@ import { enquiryService } from "../enquiry/enquiry.service.js";
 import { selectionService } from "../selection/selection.service.js";
 import { toPublicStoneDto, toStoneCardDto } from "../stone/stone.dto.js";
 import { toPublicEditDto, toPublicEditDetailDto } from "../edit/edit.dto.js";
-import { toPublicApplicationDto, toApplicationContentDto } from "../application/application.dto.js";
+import {
+  toPublicApplicationDto,
+  toApplicationContentDto,
+  toProjectVideoDto,
+} from "../application/application.dto.js";
 import { toPublicSelectionDto } from "../selection/selection.dto.js";
 import { toHeroMediaDto, toMediaDto } from "../media/media.dto.js";
 import { clientService } from "../client/client.service.js";
@@ -229,6 +233,12 @@ const projects = asyncHandler(async (_req, res) => {
   });
 });
 
+/** Phase-3 feedback — the Projects page's Videos tab. */
+const projectVideos = asyncHandler(async (_req, res) => {
+  const videos = await publicService.projectVideos();
+  return sendSuccess(res, { data: videos.map(toProjectVideoDto) });
+});
+
 /**
  * Reference images for a sourcing enquiry, uploaded before the form is sent.
  *
@@ -305,6 +315,7 @@ const publicController = {
   application,
   applicationProject,
   projects,
+  projectVideos,
   clients,
   favourites,
   favouritesPdf,

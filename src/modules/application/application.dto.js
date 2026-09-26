@@ -77,4 +77,22 @@ function toApplicationContentDto(doc, { slug, label }) {
   };
 }
 
-export { toPublicApplicationDto, toAdminApplicationDto, toApplicationContentDto };
+/** Phase-3 feedback — one entry on the Projects page's Videos tab. */
+function toProjectVideoDto(doc) {
+  return {
+    id: String(doc._id),
+    title: doc.title,
+    instagramUrl: doc.instagramUrl || null,
+    video: toMediaDto(doc.video),
+    videoId: doc.video ? String(doc.video?._id ?? doc.video) : null,
+    location: doc.location ?? null,
+    isPublished: doc.isPublished !== false,
+  };
+}
+
+export {
+  toPublicApplicationDto,
+  toAdminApplicationDto,
+  toApplicationContentDto,
+  toProjectVideoDto,
+};

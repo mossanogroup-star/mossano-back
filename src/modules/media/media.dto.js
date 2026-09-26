@@ -59,12 +59,23 @@ function toMediaDto(doc) {
   if (!doc._id) return { id: String(doc) };
 
   const isImage = doc.resourceType !== "video";
+  // Video: a real still for the poster, and a compressed rendition to stream.
+  // Players list `url` as a fallback source, since Cloudinary will not
+  // transcode a very large file on the fly.
+  const isCloudVideo = !isImage && /res\.cloudinary\.com/.test(doc.url ?? "");
 
   return {
     id: String(doc._id),
     kind: doc.kind,
     url: doc.url,
-    thumbnailUrl: doc.thumbnailUrl || doc.url,
+    thumbnailUrl:
+      (isCloudVideo && storage.derive(doc.storageKey, "video", { width: 800, poster: true })) ||
+      doc.thumbnailUrl ||
+      doc.url,
+    streamUrl: isCloudVideo ? storage.derive(doc.storageKey, "video", { width: 1080 }) : null,
+    previewUrl: isCloudVideo
+      ? storage.derive(doc.storageKey, "video", { width: 480, mute: true })
+      : null,
     alt: doc.alt || "",
     caption: doc.caption || "",
     mimeType: doc.mimeType,

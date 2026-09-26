@@ -139,6 +139,9 @@ const COLOUR_SLUGS = slugsOf(COLOURS);
 const WHITE_SUBCATEGORY_SLUGS = slugsOf(WHITE_SUBCATEGORIES);
 const FINISH_SLUGS = slugsOf(FINISHES);
 
+/** Live check: APPLICATIONS grows at runtime when the team adds one. */
+const isApplicationSlug = (slug) => APPLICATION_SLUGS.includes(slug);
+
 const labelOf = (list, slug) => list.find((x) => x.slug === slug)?.label ?? null;
 
 export {
@@ -154,6 +157,7 @@ export {
   FINISHES,
   LOOK_SLUGS,
   APPLICATION_SLUGS,
+  isApplicationSlug,
   MATERIAL_SLUGS,
   COLOUR_SLUGS,
   WHITE_SUBCATEGORY_SLUGS,

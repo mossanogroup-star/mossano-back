@@ -12,7 +12,6 @@
  * per project wise" note would extend this entity.
  */
 import mongoose from "mongoose";
-import { APPLICATION_SLUGS } from "../stone/stone.constants.js";
 
 /**
  * How the Projects page groups a project — the brochure's own headings
@@ -43,7 +42,6 @@ const ApplicationSchema = new mongoose.Schema(
     /** Which of the seven categories this belongs to. */
     application: {
       type: String,
-      enum: APPLICATION_SLUGS,
       required: true,
       index: true,
     },
@@ -126,7 +124,6 @@ const ApplicationContentSchema = new mongoose.Schema(
   {
     application: {
       type: String,
-      enum: APPLICATION_SLUGS,
       required: true,
       unique: true,
       index: true,
@@ -145,7 +142,51 @@ const ApplicationContentSchema = new mongoose.Schema(
   { timestamps: true },
 );
 
+/**
+ * Phase-3 feedback — the Projects page's Videos tab.
+ *
+ * A video stands on its own here, not inside a project record: the team posts
+ * site walkthroughs that belong to no single photographed project.
+ */
+const ProjectVideoSchema = new mongoose.Schema(
+  {
+    title: { type: String, required: true, trim: true },
+    /** Either or both. The file plays in the site's own player; a URL alone
+        falls back to Instagram's embed, which Instagram may send off-site. */
+    instagramUrl: { type: String, trim: true },
+    video: { type: mongoose.Schema.Types.ObjectId, ref: "Media" },
+    location: { type: String, trim: true },
+    isPublished: { type: Boolean, default: true, index: true },
+    createdBy: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+    updatedBy: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+  },
+  { timestamps: true },
+);
+
+/**
+ * Applications the team added from the admin, on top of the seven built into
+ * stone.constants.js. Loaded into APPLICATIONS at startup, so every labelOf()
+ * and validation sees them without knowing where they came from.
+ */
+const ApplicationCategorySchema = new mongoose.Schema(
+  {
+    slug: { type: String, required: true, unique: true, trim: true, lowercase: true },
+    label: { type: String, required: true, trim: true },
+    createdBy: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+  },
+  { timestamps: true },
+);
+
 const ApplicationModel = mongoose.model("Application", ApplicationSchema);
 const ApplicationContentModel = mongoose.model("ApplicationContent", ApplicationContentSchema);
+const ProjectVideoModel = mongoose.model("ProjectVideo", ProjectVideoSchema);
+const ApplicationCategoryModel = mongoose.model("ApplicationCategory", ApplicationCategorySchema);
 
-export { ApplicationModel, ApplicationContentModel, PROJECT_SECTORS, PROJECT_SECTOR_SLUGS };
+export {
+  ApplicationModel,
+  ApplicationContentModel,
+  ProjectVideoModel,
+  ApplicationCategoryModel,
+  PROJECT_SECTORS,
+  PROJECT_SECTOR_SLUGS,
+};

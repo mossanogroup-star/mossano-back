@@ -10,6 +10,11 @@ import {
   applicationUpdateSchema,
   applicationDeleteSchema,
   applicationContentSaveSchema,
+  applicationCategoryCreateSchema,
+  applicationCategoryDeleteSchema,
+  projectVideoCreateSchema,
+  projectVideoUpdateSchema,
+  projectVideoDeleteSchema,
 } from "./application.validation.js";
 
 const router = Router();
@@ -26,6 +31,41 @@ router.put(
   validateRequest(applicationContentSaveSchema),
   applicationController.saveContent,
 );
+// New Shop by Application categories. Before /:id.
+router.post(
+  "/categories",
+  canManage,
+  validateRequest(applicationCategoryCreateSchema),
+  applicationController.createCategory,
+);
+router.delete(
+  "/categories/:slug",
+  adminOnly,
+  validateRequest(applicationCategoryDeleteSchema),
+  applicationController.removeCategory,
+);
+
+// Phase-3 feedback — the Projects page's Videos tab. Also before /:id.
+router.get("/videos", canRead, applicationController.listVideos);
+router.post(
+  "/videos",
+  canManage,
+  validateRequest(projectVideoCreateSchema),
+  applicationController.createVideo,
+);
+router.patch(
+  "/videos/:id",
+  canManage,
+  validateRequest(projectVideoUpdateSchema),
+  applicationController.updateVideo,
+);
+router.delete(
+  "/videos/:id",
+  canManage,
+  validateRequest(projectVideoDeleteSchema),
+  applicationController.removeVideo,
+);
+
 router.get("/", canRead, validateRequest(applicationListSchema), applicationController.list);
 router.post("/", canManage, validateRequest(applicationCreateSchema), applicationController.create);
 

@@ -1,7 +1,22 @@
 import { applicationRepository } from "./application.repository.js";
-import { PROJECT_SECTORS } from "./application.model.js";
+import {
+  PROJECT_SECTORS,
+  ApplicationCategoryModel,
+  ApplicationModel,
+} from "./application.model.js";
+import { StoneModel } from "../stone/stone.model.js";
 import { stoneRepository } from "../stone/stone.repository.js";
-import { APPLICATIONS, labelOf } from "../stone/stone.constants.js";
+import { APPLICATIONS, APPLICATION_SLUGS, labelOf } from "../stone/stone.constants.js";
+import { slugify } from "../../utils/slugify.js";
+
+/** The seven from the requirement document; these can never be deleted. */
+const BUILT_IN = new Set(APPLICATION_SLUGS);
+
+function addToTaxonomy({ slug, label }) {
+  if (APPLICATION_SLUGS.includes(slug)) return;
+  APPLICATIONS.push({ slug, label });
+  APPLICATION_SLUGS.push(slug);
+}
 import { uniqueSlug } from "../../utils/slugify.js";
 import { AppError } from "../../utils/AppError.js";
 import { invalidateStorefront } from "../stone/stone.service.js";
@@ -24,6 +39,57 @@ function buildPatch(body) {
 }
 
 const applicationService = {
+  // --- Applications added from the admin ---
+
+  /**
+   * Called once at startup. The lists are mutated in place so every module that
+   * imported them sees the additions.
+   * ponytail: in-memory per process; with more than one server instance, a new
+   * application reaches the others on their next restart. Move to a DB read if
+   * the site ever scales out.
+   */
+  async loadCategories() {
+    const custom = await ApplicationCategoryModel.find().sort({ createdAt: 1 }).lean();
+    custom.forEach(addToTaxonomy);
+  },
+
+  async createCategory({ label }, user) {
+    const slug = slugify(label, { maxLength: 60 });
+    if (!slug) throw new AppError("Name the application", 400);
+    if (APPLICATION_SLUGS.includes(slug))
+      throw new AppError(`${label} already exists`, 409, { code: "CONFLICT" });
+
+    await ApplicationCategoryModel.create({ slug, label, createdBy: user?.id });
+    addToTaxonomy({ slug, label });
+    invalidateStorefront();
+    return { slug, label };
+  },
+
+  /** Only an added application, and only while nothing is tagged with it. */
+  async removeCategory(slug) {
+    if (BUILT_IN.has(slug)) throw new AppError("Built-in applications cannot be removed", 400);
+    const [stone, project] = await Promise.all([
+      StoneModel.exists({ applications: slug, isDeleted: false }),
+      ApplicationModel.exists({ application: slug, isDeleted: false }),
+    ]);
+    if (stone || project)
+      throw new AppError("Stones or projects still use this application — untag them first", 409, {
+        code: "CONFLICT",
+      });
+
+    await ApplicationCategoryModel.deleteOne({ slug });
+    const i = APPLICATION_SLUGS.indexOf(slug);
+    if (i !== -1) {
+      APPLICATION_SLUGS.splice(i, 1);
+      APPLICATIONS.splice(
+        APPLICATIONS.findIndex((a) => a.slug === slug),
+        1,
+      );
+    }
+    invalidateStorefront();
+    return { slug };
+  },
+
   list(query) {
     return applicationRepository.findMany(query);
   },
@@ -58,24 +124,34 @@ const applicationService = {
    * categories start in the second or third state.
    */
   async index() {
-    const [projectCounts, stoneFacets] = await Promise.all([
+    const [projectCounts, stoneFacets, contents] = await Promise.all([
       applicationRepository.countsByApplication(),
       stoneRepository.facets(),
+      applicationRepository.findAllContent(),
     ]);
 
     const projectsBy = new Map(projectCounts.map((c) => [c.application, c.count]));
     const stonesBy = new Map((stoneFacets.applications ?? []).map((c) => [c.value, c.count]));
+    // The application page's own imagery also earns it a page — without this a
+    // newly added application, with no stones tagged yet, was a dead tile.
+    const imagesBy = new Map(
+      contents
+        .filter((c) => c.isPublished !== false)
+        .map((c) => [c.application, (c.images ?? []).length]),
+    );
 
     return APPLICATIONS.map(({ slug, label }) => {
       const projectCount = projectsBy.get(slug) ?? 0;
       const stoneCount = stonesBy.get(slug) ?? 0;
+      const imageCount = imagesBy.get(slug) ?? 0;
       return {
         slug,
         label,
         projectCount,
         stoneCount,
-        href: projectCount ? `/application/${slug}` : `/shop?application=${slug}`,
-        isEmpty: projectCount === 0 && stoneCount === 0,
+        imageCount,
+        href: projectCount || imageCount ? `/application/${slug}` : `/shop?application=${slug}`,
+        isEmpty: projectCount === 0 && stoneCount === 0 && imageCount === 0,
       };
     });
   },
@@ -107,6 +183,7 @@ const applicationService = {
     return APPLICATIONS.map(({ slug, label }) => ({
       slug,
       label,
+      builtIn: BUILT_IN.has(slug),
       content: by.get(slug) ?? null,
     }));
   },
@@ -123,6 +200,38 @@ const applicationService = {
     const saved = await applicationRepository.upsertContent(application, patch);
     invalidateStorefront();
     return saved;
+  },
+
+  // --- Phase-3 feedback: the Projects page's Videos tab ---
+
+  listVideos(opts) {
+    return applicationRepository.findVideos(opts);
+  },
+
+  async createVideo(body, user) {
+    const created = await applicationRepository.createVideo({ ...body, createdBy: user?.id });
+    invalidateStorefront();
+    return applicationRepository.findVideoById(created._id);
+  },
+
+  async updateVideo(id, body, user) {
+    const updated = await applicationRepository.updateVideo(id, {
+      instagramUrl: null,
+      video: null,
+      location: null,
+      ...body,
+      updatedBy: user?.id,
+    });
+    if (!updated) throw new AppError("Video not found", 404);
+    invalidateStorefront();
+    return updated;
+  },
+
+  async removeVideo(id) {
+    const deleted = await applicationRepository.deleteVideo(id);
+    if (!deleted) throw new AppError("Video not found", 404);
+    invalidateStorefront();
+    return { id };
   },
 
   async create(body, user) {

@@ -1,4 +1,8 @@
-import { ApplicationModel, ApplicationContentModel } from "./application.model.js";
+import {
+  ApplicationModel,
+  ApplicationContentModel,
+  ProjectVideoModel,
+} from "./application.model.js";
 import { escapeRegex, runPagedQuery, softDeleteById } from "../../utils/repositoryHelpers.js";
 
 const POPULATE = [
@@ -15,6 +19,11 @@ const POPULATE = [
     select: "url thumbnailUrl storageKey resourceType alt caption width height trimSafe",
   },
 ];
+
+const VIDEO_POPULATE = {
+  path: "video",
+  select: "url thumbnailUrl storageKey resourceType alt caption width height trimSafe",
+};
 
 const CONTENT_POPULATE = [
   {
@@ -89,6 +98,25 @@ const applicationRepository = {
     );
     return this.findContent(application, { publishedOnly: false });
   },
+
+  // --- Phase-3 feedback: the Projects page's Videos tab ---
+
+  findVideos: ({ publishedOnly = true } = {}) =>
+    ProjectVideoModel.find(publishedOnly ? { isPublished: true } : {})
+      .sort({ createdAt: -1 })
+      .populate(VIDEO_POPULATE)
+      .lean(),
+
+  findVideoById: (id) => ProjectVideoModel.findById(id).populate(VIDEO_POPULATE).lean(),
+
+  createVideo: (data) => ProjectVideoModel.create(data),
+
+  updateVideo: (id, patch) =>
+    ProjectVideoModel.findByIdAndUpdate(id, { $set: patch }, { new: true, runValidators: true })
+      .populate(VIDEO_POPULATE)
+      .lean(),
+
+  deleteVideo: (id) => ProjectVideoModel.findByIdAndDelete(id).lean(),
 
   findBySlug: (slug, { publishedOnly = true } = {}) =>
     ApplicationModel.findOne({
