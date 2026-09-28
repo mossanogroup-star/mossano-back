@@ -75,6 +75,24 @@ async function run() {
         },
       );
     } catch (err) {
+      // Two records can share one file: the first rename moves it, and the
+      // second finds nothing left under "upload". Point it at the moved file.
+      const moved = await cloudinary.api
+        .resource(media.storageKey, { resource_type: resourceType, type: "authenticated" })
+        .catch(() => null);
+      if (moved) {
+        await MediaModel.updateOne(
+          { _id: media._id },
+          {
+            url: moved.secure_url,
+            thumbnailUrl: cloudinaryProvider.derive(media.storageKey, resourceType, {
+              width: 600,
+              type: "authenticated",
+            }),
+          },
+        );
+        continue;
+      }
       failed += 1;
       logger.error({ err, storageKey: media.storageKey }, "Could not protect this file");
     }
