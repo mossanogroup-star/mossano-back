@@ -78,6 +78,7 @@ const stoneBodyCreateSchema = z.object({
 
   imageIds: z.array(objectIdSchema).max(60).optional(),
   videoIds: z.array(objectIdSchema).max(10).optional(),
+  applicationImageIds: z.array(objectIdSchema).max(60).optional(),
   slabs: z.array(slabSchema).max(200).optional(),
 
   isFeatured: z.boolean().optional().default(false),

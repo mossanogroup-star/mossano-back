@@ -8,7 +8,7 @@
  */
 import { env } from "../../config/env.js";
 import { logger } from "../../config/logger.js";
-import { cloudinaryProvider } from "./cloudinaryProvider.js";
+import { cloudinaryProvider, deliveryType } from "./cloudinaryProvider.js";
 import { localProvider, UPLOAD_ROOT } from "./localProvider.js";
 
 const PROVIDERS = { cloudinary: cloudinaryProvider, local: localProvider };
@@ -52,4 +52,4 @@ function getProvider(name) {
   return PROVIDERS[name] ?? storage;
 }
 
-export { storage, getProvider, providerName as storageProviderName, UPLOAD_ROOT };
+export { storage, getProvider, deliveryType, providerName as storageProviderName, UPLOAD_ROOT };

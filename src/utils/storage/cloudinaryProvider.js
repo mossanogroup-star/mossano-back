@@ -33,6 +33,40 @@ function uploadBuffer(buffer, options) {
   });
 }
 
+/**
+ * Burnt into every delivered rendition, images and video alike. A screenshot
+ * cannot be blocked by any website; a screenshot that carries the name can be.
+ * Small and bottom-right at the client's request, so it does not compete with
+ * the stone. Scaled to the rendition's width so a 400px card and a 2000px
+ * detail view read the same.
+ */
+const WATERMARK = [
+  {
+    overlay: {
+      font_family: "Arial",
+      font_size: 120,
+      font_weight: "bold",
+      letter_spacing: 24,
+      stroke: "stroke",
+      text: "MOSSANO",
+    },
+    color: "#FFFFFF",
+    // A dark outline, so the mark still reads on white marble.
+    border: "3px_solid_rgb:00000080",
+    opacity: 60,
+    width: 0.16,
+    flags: "relative",
+    crop: "scale",
+  },
+  // x/y under 1 are fractions of the image, so the margin scales with it.
+  { flags: "layer_apply", gravity: "south_east", x: 0.03, y: 0.04 },
+];
+
+/** A stored delivery URL says which delivery type the asset lives under. */
+function deliveryType(url) {
+  return /\/authenticated\//.test(url ?? "") ? "authenticated" : "upload";
+}
+
 const cloudinaryProvider = {
   name: "cloudinary",
 
@@ -44,6 +78,9 @@ const cloudinaryProvider = {
       public_id: filename?.replace(/\.[^.]+$/, "").slice(0, 80) || undefined,
       unique_filename: true,
       overwrite: false,
+      // Not reachable by a bare URL: every delivery must be signed, so the
+      // watermark cannot be stripped by editing the address.
+      type: "authenticated",
     });
 
     const resourceType = result.resource_type ?? "image";
@@ -53,7 +90,10 @@ const cloudinaryProvider = {
       storageKey: result.public_id,
       resourceType,
       url: result.secure_url,
-      thumbnailUrl: this.derive(result.public_id, resourceType, { width: 600 }),
+      thumbnailUrl: this.derive(result.public_id, resourceType, {
+        width: 600,
+        type: "authenticated",
+      }),
       width: result.width,
       height: result.height,
       bytes: result.bytes,
@@ -73,11 +113,20 @@ const cloudinaryProvider = {
       upscale = false,
       poster = false,
       mute = false,
+      /** "authenticated" for anything uploaded or migrated since protection — see deliveryType(). */
+      type = "upload",
+      watermark = true,
+      /** Returns the rendition's JSON metadata instead of the image. */
+      info = false,
     } = {},
   ) {
     if (!env.CLOUDINARY_CONFIGURED || !storageKey) return null;
     return cloudinary.url(storageKey, {
       resource_type: resourceType,
+      type,
+      // The signature covers the transformation, so a URL with the watermark
+      // step cut out is rejected rather than served.
+      sign_url: true,
       secure: true,
       // A video's still frame, as a JPEG — without it `f_auto` on a video URL
       // returns another video, which a <video poster> cannot show.
@@ -98,17 +147,21 @@ const cloudinaryProvider = {
         { width, height, crop },
         // Tile previews loop silently; dropping the track saves the bytes.
         ...(mute ? [{ audio_codec: "none" }] : []),
+        ...(watermark ? WATERMARK : []),
+        ...(info ? [{ flags: "getinfo" }] : []),
         { quality: "auto", fetch_format: "auto" },
       ],
     });
   },
 
-  async remove(storageKey, resourceType = "image") {
+  async remove(storageKey, resourceType = "image", type = "upload") {
     if (!storageKey) return;
     await cloudinary.uploader.destroy(storageKey, {
       resource_type: resourceType,
+      type,
+      invalidate: true,
     });
   },
 };
 
-export { cloudinaryProvider };
+export { cloudinaryProvider, deliveryType };

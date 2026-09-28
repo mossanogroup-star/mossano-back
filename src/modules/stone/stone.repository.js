@@ -12,6 +12,11 @@ const POPULATE = [
     select: "url thumbnailUrl storageKey resourceType alt caption mimeType kind trimSafe",
   },
   {
+    path: "applicationImages",
+    select:
+      "url thumbnailUrl storageKey resourceType alt caption width height mimeType kind trimSafe",
+  },
+  {
     path: "slabs.image",
     select: "url thumbnailUrl storageKey resourceType alt width height mimeType kind trimSafe",
   },

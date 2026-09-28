@@ -11,7 +11,7 @@ const POPULATE = [
   { path: "assignedTo", select: "name email" },
   {
     path: "sourcing.referenceImages",
-    select: "url thumbnailUrl alt width height",
+    select: "url thumbnailUrl storageKey resourceType alt width height",
   },
 ];
 

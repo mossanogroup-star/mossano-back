@@ -1,5 +1,6 @@
 import { stoneRepository } from "./stone.repository.js";
 import { mediaRepository } from "../media/media.repository.js";
+import { toMediaDto } from "../media/media.dto.js";
 import { AVAILABILITY_RANK } from "./stone.constants.js";
 import { uniqueSlug } from "../../utils/slugify.js";
 import { nextSequence, ensureCounterAtLeast } from "../../utils/counter.js";
@@ -48,7 +49,7 @@ async function resolvePrimaryImage(imageIds) {
   const byId = new Map(media.map((m) => [String(m._id), m]));
   for (const id of imageIds) {
     const hit = byId.get(String(id));
-    if (hit) return { primaryImageUrl: hit.url, primaryImageAlt: hit.alt || "" };
+    if (hit) return { primaryImageUrl: toMediaDto(hit).url, primaryImageAlt: hit.alt || "" };
   }
   return { primaryImageUrl: null, primaryImageAlt: null };
 }
@@ -69,6 +70,10 @@ function buildPatch(body, { touchVerified = true } = {}) {
   if (body.videoIds !== undefined) {
     patch.videos = body.videoIds;
     delete patch.videoIds;
+  }
+  if (body.applicationImageIds !== undefined) {
+    patch.applicationImages = body.applicationImageIds;
+    delete patch.applicationImageIds;
   }
 
   if (body.availability !== undefined) {

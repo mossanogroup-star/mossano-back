@@ -130,6 +130,8 @@ const StoneSchema = new mongoose.Schema(
     // Ordered: a gallery that reshuffles between page loads reads as broken.
     images: [{ type: mongoose.Schema.Types.ObjectId, ref: "Media" }],
     videos: [{ type: mongoose.Schema.Types.ObjectId, ref: "Media" }],
+    /** The stone installed — shown as thumbnails under the slab photography. */
+    applicationImages: [{ type: mongoose.Schema.Types.ObjectId, ref: "Media" }],
     slabs: { type: [SlabSchema], default: [] },
 
     /** Denormalised so a card renders without a populate round-trip. */

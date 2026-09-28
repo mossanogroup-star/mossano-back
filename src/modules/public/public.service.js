@@ -243,7 +243,9 @@ const publicService = {
         // tagged yet — the pictures are the page.
         isEmpty: count === 0 && !ownImage,
         href: `/look/${slug}`,
-        image: ownImage?.url ?? lead?.primaryImageUrl ?? null,
+        // The lead's own media, not its stored primaryImageUrl — that copy can
+        // predate watermarking and point at the original.
+        image: ownImage?.url ?? toMediaDto(lead?.images?.[0])?.url ?? null,
         imageAlt: ownImage ? (ownImage.alt ?? label) : lead ? `${lead.name} — ${label}` : null,
       };
     });

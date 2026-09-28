@@ -1,5 +1,5 @@
 import { mediaRepository } from "./media.repository.js";
-import { storage, getProvider } from "../../utils/storage/index.js";
+import { storage, getProvider, deliveryType } from "../../utils/storage/index.js";
 import { AppError } from "../../utils/AppError.js";
 import { env } from "../../config/env.js";
 import { logger } from "../../config/logger.js";
@@ -41,9 +41,13 @@ async function isTrimSafe(stored) {
   if (!stored.width) return true;
 
   try {
-    const url = storage
-      .derive(stored.storageKey, stored.resourceType, { width: stored.width, trim: true })
-      .replace("/image/upload/", "/image/upload/fl_getinfo/");
+    const url = storage.derive(stored.storageKey, stored.resourceType, {
+      width: stored.width,
+      trim: true,
+      info: true,
+      watermark: false,
+      type: deliveryType(stored.url),
+    });
     const info = await fetch(url).then((r) => (r.ok ? r.json() : null));
     const trimmedWidth = info?.output?.width;
     if (!trimmedWidth) return true;
@@ -153,7 +157,11 @@ const mediaService = {
     await mediaRepository.softDelete(id);
     try {
       // The record's provider, not the active one — see getProvider.
-      await getProvider(media.provider).remove(media.storageKey, media.resourceType);
+      await getProvider(media.provider).remove(
+        media.storageKey,
+        media.resourceType,
+        deliveryType(media.url),
+      );
     } catch (err) {
       logger.warn(
         { err, storageKey: media.storageKey },

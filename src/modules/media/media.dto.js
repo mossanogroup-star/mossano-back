@@ -1,4 +1,15 @@
-import { storage } from "../../utils/storage/index.js";
+import { storage, deliveryType } from "../../utils/storage/index.js";
+
+/**
+ * A signed, watermarked rendition of this document. Nothing leaves the API
+ * pointing at the original upload — see WATERMARK in cloudinaryProvider.js.
+ */
+function derive(doc, options) {
+  return storage.derive(doc.storageKey, doc.resourceType, {
+    type: deliveryType(doc.url),
+    ...options,
+  });
+}
 
 /** The widths the storefront actually requests, matching its `sizes` attribute. */
 const SRCSET_WIDTHS = [400, 800, 1200, 2000];
@@ -37,7 +48,7 @@ function buildSrcset(doc, options = {}) {
     .map((width) => ({
       width,
       url:
-        storage.derive(doc.storageKey, doc.resourceType, {
+        derive(doc, {
           width,
           ...deriveOptions,
           upscale: Boolean(doc.width && width > doc.width),
@@ -64,18 +75,22 @@ function toMediaDto(doc) {
   // transcode a very large file on the fly.
   const isCloudVideo = !isImage && /res\.cloudinary\.com/.test(doc.url ?? "");
 
+  const streamUrl = isCloudVideo ? derive(doc, { width: 1080 }) : null;
+
   return {
     id: String(doc._id),
     kind: doc.kind,
-    url: doc.url,
+    // The stored URL is the unwatermarked original; it is only a fallback for
+    // the local provider, which has no transformations to offer.
+    url: (isImage ? derive(doc, { width: doc.width }) : streamUrl) || doc.url,
     thumbnailUrl:
-      (isCloudVideo && storage.derive(doc.storageKey, "video", { width: 800, poster: true })) ||
+      (isCloudVideo
+        ? derive(doc, { width: 800, poster: true })
+        : isImage && derive(doc, { width: 600 })) ||
       doc.thumbnailUrl ||
       doc.url,
-    streamUrl: isCloudVideo ? storage.derive(doc.storageKey, "video", { width: 1080 }) : null,
-    previewUrl: isCloudVideo
-      ? storage.derive(doc.storageKey, "video", { width: 480, mute: true })
-      : null,
+    streamUrl,
+    previewUrl: isCloudVideo ? derive(doc, { width: 480, mute: true }) : null,
     alt: doc.alt || "",
     caption: doc.caption || "",
     mimeType: doc.mimeType,
@@ -93,7 +108,7 @@ function toMediaOptionDto(doc) {
   return {
     id: String(doc._id),
     kind: doc.kind,
-    thumbnailUrl: doc.thumbnailUrl || doc.url,
+    thumbnailUrl: derive(doc, { width: 600 }) || doc.thumbnailUrl || doc.url,
     alt: doc.alt || "",
     filename: doc.filename,
   };
@@ -114,7 +129,7 @@ function toHeroMediaDto(doc) {
   return {
     ...base,
     url:
-      storage.derive(doc.storageKey, doc.resourceType, {
+      derive(doc, {
         width: doc.width,
         trim: doc.trimSafe !== false,
       }) || base.url,

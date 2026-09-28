@@ -7,7 +7,7 @@
  */
 import PDFDocument from "pdfkit";
 import { logger } from "../../config/logger.js";
-import { storage } from "../storage/index.js";
+import { storage, deliveryType } from "../storage/index.js";
 import { brand } from "../../config/brand.js";
 
 const PAGE_MARGIN = 48;
@@ -60,6 +60,7 @@ function printUrl(media) {
   return (
     storage.derive(media.storageKey, media.resourceType ?? "image", {
       width: 900,
+      type: deliveryType(media.url),
     }) || media.url
   );
 }

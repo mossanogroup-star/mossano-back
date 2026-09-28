@@ -16,7 +16,7 @@ import { EditModel } from "../src/modules/edit/edit.model.js";
 import { ApplicationModel } from "../src/modules/application/application.model.js";
 import { SelectionModel } from "../src/modules/selection/selection.model.js";
 import { EnquiryModel } from "../src/modules/enquiry/enquiry.model.js";
-import { getProvider } from "../src/utils/storage/index.js";
+import { getProvider, deliveryType } from "../src/utils/storage/index.js";
 
 const DELETE = process.argv.includes("--delete");
 const providerArg = process.argv.find((a) => a.startsWith("--provider="));
@@ -99,7 +99,7 @@ async function main() {
         // Dispatched on the record's own provider, not the active one — after a
         // migration these differ, and removing a local file through Cloudinary
         // fails silently and leaves the file on disk.
-        await getProvider(m.provider).remove(m.storageKey, m.resourceType);
+        await getProvider(m.provider).remove(m.storageKey, m.resourceType, deliveryType(m.url));
       } catch (err) {
         logger.warn({ err: err.message, filename: m.filename }, "Could not remove the stored file");
       }

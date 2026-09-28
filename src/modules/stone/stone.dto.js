@@ -154,9 +154,10 @@ function toPublicStoneDto(doc) {
     specs: buildSpecs(doc),
 
     primaryImage,
-    primaryImageUrl: doc.primaryImageUrl || primaryImage?.url || null,
+    primaryImageUrl: primaryImage?.url || doc.primaryImageUrl || null,
     images,
     videos: mediaList(doc.videos),
+    applicationImages: mediaList(doc.applicationImages),
     hasVideo: (doc.videos ?? []).length > 0,
 
     /** Website §4 — "individual slab images where available". */
@@ -204,7 +205,7 @@ function toStoneCardDto(doc) {
     slabCount: doc.slabCount ?? null,
     areaSqFt: doc.areaSqFt ?? null,
     primaryImage,
-    primaryImageUrl: doc.primaryImageUrl || primaryImage?.url || null,
+    primaryImageUrl: primaryImage?.url || doc.primaryImageUrl || null,
     href: `/stone/${doc.slug}`,
     whatsapp: { enquire: whatsappLink(stoneEnquiryMessage(doc)) },
   };
@@ -220,6 +221,7 @@ function toAdminStoneDto(doc) {
     isPublished: doc.isPublished !== false,
     imageIds: (doc.images ?? []).map((m) => String(m?._id ?? m)),
     videoIds: (doc.videos ?? []).map((m) => String(m?._id ?? m)),
+    applicationImageIds: (doc.applicationImages ?? []).map((m) => String(m?._id ?? m)),
     createdAt: doc.createdAt,
     updatedAt: doc.updatedAt,
   };

@@ -19,7 +19,8 @@
     "migrate:exotic": "node scripts/migrateExoticColour.js",
     "gen:countries": "node scripts/generateCountries.js",
     "migrate:origin": "node scripts/migrateOriginCountry.js",
-    "import:process": "node scripts/importProcessImages.js"
+    "import:process": "node scripts/importProcessImages.js",
+    "protect:media": "node scripts/protectMedia.js"
   },
   "dependencies": {
     "bcryptjs": "^3.0.2",
