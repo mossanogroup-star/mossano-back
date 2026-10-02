@@ -17,6 +17,9 @@ import mongoose from "mongoose";
  * How the Projects page groups a project — the brochure's own headings
  * ("Landmark Projects: Residential", "Hospitality & Infrastructure").
  * Optional: an ordinary application photo is not a landmark project.
+ *
+ * Sectors the team adds from the admin are appended at startup, like
+ * applications — see ProjectSectorSchema.
  */
 const PROJECT_SECTORS = [
   { slug: "residential", label: "Residential" },
@@ -80,7 +83,9 @@ const ApplicationSchema = new mongoose.Schema(
     ],
 
     /** Set only on the landmark projects that appear on /projects. */
-    sector: { type: String, enum: PROJECT_SECTOR_SLUGS, index: true },
+    // No `enum`: mongoose copies the list when the schema is built, so a sector
+    // added from the admin would be rejected. Validation checks the live list.
+    sector: { type: String, index: true },
     /** As the brochure quotes it — "450,000 Sq. Ft." */
     areaSqFt: { type: Number, min: 0 },
 
@@ -177,16 +182,28 @@ const ApplicationCategorySchema = new mongoose.Schema(
   { timestamps: true },
 );
 
+/** Landmark sectors added from the admin, on top of the four above. */
+const ProjectSectorSchema = new mongoose.Schema(
+  {
+    slug: { type: String, required: true, unique: true, trim: true, lowercase: true },
+    label: { type: String, required: true, trim: true },
+    createdBy: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+  },
+  { timestamps: true },
+);
+
 const ApplicationModel = mongoose.model("Application", ApplicationSchema);
 const ApplicationContentModel = mongoose.model("ApplicationContent", ApplicationContentSchema);
 const ProjectVideoModel = mongoose.model("ProjectVideo", ProjectVideoSchema);
 const ApplicationCategoryModel = mongoose.model("ApplicationCategory", ApplicationCategorySchema);
+const ProjectSectorModel = mongoose.model("ProjectSector", ProjectSectorSchema);
 
 export {
   ApplicationModel,
   ApplicationContentModel,
   ProjectVideoModel,
   ApplicationCategoryModel,
+  ProjectSectorModel,
   PROJECT_SECTORS,
   PROJECT_SECTOR_SLUGS,
 };

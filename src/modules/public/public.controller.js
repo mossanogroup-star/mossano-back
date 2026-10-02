@@ -8,6 +8,7 @@ import {
   toApplicationContentDto,
   toProjectVideoDto,
 } from "../application/application.dto.js";
+import { PROJECT_SECTORS } from "../application/application.model.js";
 import { toPublicSelectionDto } from "../selection/selection.dto.js";
 import { toHeroMediaDto, toMediaDto } from "../media/media.dto.js";
 import { clientService } from "../client/client.service.js";
@@ -48,6 +49,8 @@ const config = asyncHandler(async (_req, res) =>
       taxonomies: {
         looks: LOOKS,
         applications: APPLICATIONS,
+        // Landmark sectors, including any the team added — the admin's dropdown.
+        projectSectors: PROJECT_SECTORS,
         materials: MATERIALS,
         colours: COLOURS,
         whiteSubcategories: WHITE_SUBCATEGORIES,

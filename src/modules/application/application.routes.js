@@ -12,6 +12,7 @@ import {
   applicationContentSaveSchema,
   applicationCategoryCreateSchema,
   applicationCategoryDeleteSchema,
+  projectSectorCreateSchema,
   projectVideoCreateSchema,
   projectVideoUpdateSchema,
   projectVideoDeleteSchema,
@@ -43,6 +44,14 @@ router.delete(
   adminOnly,
   validateRequest(applicationCategoryDeleteSchema),
   applicationController.removeCategory,
+);
+
+// New landmark sectors for the Projects page. Before /:id.
+router.post(
+  "/sectors",
+  canManage,
+  validateRequest(projectSectorCreateSchema),
+  applicationController.createSector,
 );
 
 // Phase-3 feedback — the Projects page's Videos tab. Also before /:id.

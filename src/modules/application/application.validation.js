@@ -56,7 +56,11 @@ const applicationBodyCreateSchema = z.object({
     )
     .max(8)
     .optional(),
-  sector: z.enum(PROJECT_SECTOR_SLUGS).optional(),
+  // Checked against the live list, which grows when the team adds a sector.
+  sector: z
+    .string()
+    .refine((s) => PROJECT_SECTOR_SLUGS.includes(s), { message: "Choose a landmark sector" })
+    .optional(),
   areaSqFt: z.number().min(0).max(10_000_000).optional(),
 
   isFeatured: z.boolean().optional().default(false),
@@ -123,12 +127,17 @@ const projectVideoDeleteSchema = makeSchema({ params: idParamSchema });
 const applicationCategoryCreateSchema = makeSchema({
   body: z.object({ label: z.string().trim().min(2, "Name the application").max(60) }),
 });
+/** A new landmark sector for the Projects page. */
+const projectSectorCreateSchema = makeSchema({
+  body: z.object({ label: z.string().trim().min(2, "Name the sector").max(60) }),
+});
 const applicationCategoryDeleteSchema = makeSchema({
   params: z.object({ slug: applicationSlugSchema }),
 });
 
 export {
   applicationCategoryCreateSchema,
+  projectSectorCreateSchema,
   applicationCategoryDeleteSchema,
   projectVideoCreateSchema,
   projectVideoUpdateSchema,

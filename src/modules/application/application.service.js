@@ -1,7 +1,9 @@
 import { applicationRepository } from "./application.repository.js";
 import {
   PROJECT_SECTORS,
+  PROJECT_SECTOR_SLUGS,
   ApplicationCategoryModel,
+  ProjectSectorModel,
   ApplicationModel,
 } from "./application.model.js";
 import { StoneModel } from "../stone/stone.model.js";
@@ -16,6 +18,12 @@ function addToTaxonomy({ slug, label }) {
   if (APPLICATION_SLUGS.includes(slug)) return;
   APPLICATIONS.push({ slug, label });
   APPLICATION_SLUGS.push(slug);
+}
+
+function addSector({ slug, label }) {
+  if (PROJECT_SECTOR_SLUGS.includes(slug)) return;
+  PROJECT_SECTORS.push({ slug, label });
+  PROJECT_SECTOR_SLUGS.push(slug);
 }
 import { uniqueSlug } from "../../utils/slugify.js";
 import { AppError } from "../../utils/AppError.js";
@@ -49,8 +57,24 @@ const applicationService = {
    * the site ever scales out.
    */
   async loadCategories() {
-    const custom = await ApplicationCategoryModel.find().sort({ createdAt: 1 }).lean();
+    const [custom, sectors] = await Promise.all([
+      ApplicationCategoryModel.find().sort({ createdAt: 1 }).lean(),
+      ProjectSectorModel.find().sort({ createdAt: 1 }).lean(),
+    ]);
     custom.forEach(addToTaxonomy);
+    sectors.forEach(addSector);
+  },
+
+  /** A new landmark sector for the Projects page, e.g. "Retail". */
+  async createSector({ label }, user) {
+    const slug = slugify(label, { maxLength: 60 });
+    if (!slug) throw new AppError("Name the sector", 400);
+    if (PROJECT_SECTOR_SLUGS.includes(slug))
+      throw new AppError(`${label} already exists`, 409, { code: "CONFLICT" });
+
+    await ProjectSectorModel.create({ slug, label, createdBy: user?.id });
+    addSector({ slug, label });
+    return { slug, label };
   },
 
   async createCategory({ label }, user) {

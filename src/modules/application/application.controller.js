@@ -118,7 +118,13 @@ const removeCategory = asyncHandler(async (req, res) => {
   return sendSuccess(res, { message: "Removed", data: result });
 });
 
+const createSector = asyncHandler(async (req, res) => {
+  const sector = await applicationService.createSector(req.validated.body, req.user);
+  return sendSuccess(res, { statusCode: 201, message: `${sector.label} added`, data: sector });
+});
+
 const applicationController = {
+  createSector,
   createCategory,
   removeCategory,
   listVideos,
