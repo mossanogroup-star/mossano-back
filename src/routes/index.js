@@ -9,6 +9,7 @@
  * Everything else requires a signed-in team member.
  */
 import { Router } from "express";
+import { cachePublicReads, clearPublicCachesOnWrite } from "../middlewares/publicCache.js";
 
 import publicRoutes from "../modules/public/public.routes.js";
 
@@ -27,9 +28,11 @@ import dashboardRoutes from "../modules/dashboard/dashboard.routes.js";
 const routes = Router();
 
 // --- Storefront ---
-routes.use("/public", publicRoutes);
+routes.use("/public", cachePublicReads, publicRoutes);
 
 // --- Admin panel ---
+// Before every admin router, so no save can skip invalidating the storefront.
+routes.use(clearPublicCachesOnWrite);
 routes.use("/auth", authRoutes);
 routes.use("/users", userRoutes);
 routes.use("/media", mediaRoutes);
