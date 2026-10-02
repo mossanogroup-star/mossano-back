@@ -53,16 +53,10 @@ const LOOKS = [
   { slug: "exotic", label: "Exotic" },
 ];
 
-/** Website §7 and Admin Scope §4 — the two lists are deliberately identical. */
-const APPLICATIONS = [
-  { slug: "bathroom-wall-floor", label: "Bathroom Wall & Floor" },
-  { slug: "kitchen-wall-floor", label: "Kitchen Wall & Floor" },
-  { slug: "reception-wall-floor", label: "Reception Wall & Floor" },
-  { slug: "bar", label: "Bar" },
-  { slug: "hotel-lobby", label: "Hotel Lobby" },
-  { slug: "penthouse-flooring", label: "Penthouse Flooring" },
-  { slug: "flooring", label: "Flooring" },
-];
+// Empty by the client's request (2 Oct 2026): the seven from the requirement
+// document were removed with the test data. Every application is now added
+// from the admin and loaded in at startup — see applicationService.loadCategories.
+const APPLICATIONS = [];
 
 /**
  * ⚠️ Not from the client. The requirement documents list Material, Colour and
