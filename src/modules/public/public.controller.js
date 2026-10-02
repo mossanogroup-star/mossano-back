@@ -84,7 +84,9 @@ const home = asyncHandler(async (_req, res) => {
             stone: toStoneCardDto(data.hero.stone),
             image: toHeroMediaDto(data.hero.stone.images?.[0]) ?? null,
           }
-        : null,
+        : data.hero.image
+          ? { source: "media", stone: null, image: toHeroMediaDto(data.hero.image) }
+          : null,
       looks: data.looks,
       applications: data.applications,
       // Phase-3 feedback — the flag row, from what is actually in stock.

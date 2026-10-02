@@ -56,7 +56,16 @@ const publicService = {
       limit: 60,
       page: 1,
     });
-    if (!items.length) return { stone: null, source: "none" };
+    if (!items.length) {
+      // No stock yet. The front page still needs its black slab, so it falls
+      // back to the media-library image captioned "hero".
+      const image = await MediaModel.findOne({
+        caption: "hero",
+        resourceType: "image",
+        isDeleted: false,
+      }).lean();
+      return { stone: null, image, source: image ? "media" : "none" };
+    }
 
     const best = [...items].sort((a, b) => heroScore(b) - heroScore(a))[0];
     return { stone: best, source: "ranked" };
