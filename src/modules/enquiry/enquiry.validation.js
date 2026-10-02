@@ -42,8 +42,8 @@ const sourcingBriefSchema = z.object({
  * message nobody can answer.
  *
  * The exception is "reference_image", the floating uploader: Phase-3 feedback,
- * the client wanted it to be the photograph and nothing else. It needs an image
- * instead, and may arrive without a name or any way to reply.
+ * the client wanted it to be the photograph and a mobile number, nothing else.
+ * It needs an image and a phone, and may arrive without a name or email.
  */
 const enquirySubmitBodySchema = z
   .object({
@@ -77,6 +77,10 @@ const enquirySubmitBodySchema = z
   .refine((v) => v.type !== "reference_image" || Boolean(v.sourcing?.referenceImages?.length), {
     message: "Add at least one reference image",
     path: ["sourcing"],
+  })
+  .refine((v) => v.type !== "reference_image" || Boolean(v.phone), {
+    message: "Add your mobile number so MOSSANO can reply",
+    path: ["phone"],
   });
 
 const enquirySubmitSchema = makeSchema({ body: enquirySubmitBodySchema });
