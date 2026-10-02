@@ -91,6 +91,13 @@ function toMediaDto(doc) {
       doc.url,
     streamUrl,
     previewUrl: isCloudVideo ? derive(doc, { width: 480, mute: true }) : null,
+    // About 1 KB. Cloudinary only: the local provider would hand back the
+    // full original, which defeats the point. Unwatermarked because at 32px
+    // and blurred there is nothing left to protect.
+    placeholderUrl:
+      isImage && doc.provider === "cloudinary"
+        ? derive(doc, { width: 32, placeholder: true, watermark: false })
+        : null,
     alt: doc.alt || "",
     caption: doc.caption || "",
     mimeType: doc.mimeType,

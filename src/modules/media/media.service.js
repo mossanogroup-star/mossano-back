@@ -88,10 +88,12 @@ const mediaService = {
     // Decided by the same helper the upload filter uses, so a phone that sent
     // "application/octet-stream" for an .mp4 is still stored as video rather
     // than being served to the browser inside an <img>.
-    const resolvedKind = isVideoUpload(file) ? "video" : kind;
+    const isVideo = isVideoUpload(file);
+    const resolvedKind = isVideo ? "video" : kind;
     const stored = await storage.upload(file.buffer, {
       filename: file.originalname,
       mimeType: file.mimetype,
+      isVideo,
       folder: FOLDER_BY_KIND[resolvedKind] || "general",
     });
 

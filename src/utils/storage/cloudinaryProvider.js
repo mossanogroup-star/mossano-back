@@ -62,6 +62,23 @@ const WATERMARK = [
   { flags: "layer_apply", gravity: "south_east", x: 0.03, y: 0.04 },
 ];
 
+/**
+ * Applied to images before Cloudinary stores them, so the master itself is
+ * smaller, not only what visitors download. 2880px is the widest rendition the
+ * storefront ever asks for (the retina hero, HERO_UPSCALE_WIDTHS in media.dto),
+ * so nothing above it is ever seen. auto:best is Cloudinary's highest automatic
+ * quality — the stored file loses no visible detail, and every delivery is
+ * re-encoded from it with q_auto/f_auto anyway.
+ *
+ * Videos are stored as uploaded: an incoming transcode runs inside the upload
+ * request, and a 100 MB file would time it out. Their renditions are already
+ * compressed at delivery.
+ */
+const SHRINK_IMAGE = {
+  format: "webp",
+  transformation: [{ width: 2880, height: 2880, crop: "limit", quality: "auto:best" }],
+};
+
 /** A stored delivery URL says which delivery type the asset lives under. */
 function deliveryType(url) {
   return /\/authenticated\//.test(url ?? "") ? "authenticated" : "upload";
@@ -70,7 +87,7 @@ function deliveryType(url) {
 const cloudinaryProvider = {
   name: "cloudinary",
 
-  async upload(buffer, { filename, folder }) {
+  async upload(buffer, { filename, folder, isVideo = false }) {
     const result = await uploadBuffer(buffer, {
       folder: [env.CLOUDINARY_FOLDER, folder].filter(Boolean).join("/"),
       resource_type: AUTO_RESOURCE_TYPE,
@@ -81,6 +98,7 @@ const cloudinaryProvider = {
       // Not reachable by a bare URL: every delivery must be signed, so the
       // watermark cannot be stripped by editing the address.
       type: "authenticated",
+      ...(isVideo ? {} : SHRINK_IMAGE),
     });
 
     const resourceType = result.resource_type ?? "image";
@@ -113,6 +131,8 @@ const cloudinaryProvider = {
       upscale = false,
       poster = false,
       mute = false,
+      /** A tiny blurred copy, painted while the real image loads. */
+      placeholder = false,
       /** "authenticated" for anything uploaded or migrated since protection — see deliveryType(). */
       type = "upload",
       watermark = true,
@@ -149,7 +169,8 @@ const cloudinaryProvider = {
         ...(mute ? [{ audio_codec: "none" }] : []),
         ...(watermark ? WATERMARK : []),
         ...(info ? [{ flags: "getinfo" }] : []),
-        { quality: "auto", fetch_format: "auto" },
+        ...(placeholder ? [{ effect: "blur:300" }] : []),
+        { quality: placeholder ? "auto:low" : "auto", fetch_format: "auto" },
       ],
     });
   },
