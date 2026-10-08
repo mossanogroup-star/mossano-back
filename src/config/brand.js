@@ -62,6 +62,12 @@ const brand = Object.freeze({
   locations: Object.freeze([HEAD_OFFICE, STUDIO, DUBAI]),
 
   /** Printed on the client's material; the site is being built for it. */
+  /** Phase-4 feedback — both accounts, linked from every stone page and the footer. */
+  instagram: Object.freeze([
+    Object.freeze({ label: "MOSSANO Marmo", url: "https://www.instagram.com/mossano.marmo/" }),
+    Object.freeze({ label: "MOSSANO Atelier", url: "https://www.instagram.com/mossano.atelier/" }),
+  ]),
+
   canonicalDomain: "www.mossanomarmo.com",
   baseUrl: env.PUBLIC_BASE_URL,
 });

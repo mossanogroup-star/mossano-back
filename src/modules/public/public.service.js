@@ -12,6 +12,7 @@ import { editService } from "../edit/edit.service.js";
 import { applicationRepository } from "../application/application.repository.js";
 import { applicationService } from "../application/application.service.js";
 import { lookService } from "../look/look.service.js";
+import { settingsService } from "../settings/settings.service.js";
 import { toMediaDto } from "../media/media.dto.js";
 import { countryLabel } from "../../config/countries.generated.js";
 import { MediaModel } from "../media/media.model.js";
@@ -46,6 +47,10 @@ const publicService = {
    * fallback covers one case: the pinned lot was withdrawn.
    */
   async resolveHero() {
+    // Phase-4 feedback — an image picked in Site Settings beats everything.
+    const { heroImage } = await settingsService.get();
+    if (heroImage && !heroImage.isDeleted) return { stone: null, image: heroImage, source: "media" };
+
     if (env.HERO_STONE_CODE) {
       const pinned = await stoneRepository.findByCode(env.HERO_STONE_CODE);
       if (pinned?.isPublished) return { stone: pinned, source: "pinned" };

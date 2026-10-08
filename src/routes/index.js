@@ -24,6 +24,7 @@ import clientRoutes from "../modules/client/client.routes.js";
 import enquiryRoutes from "../modules/enquiry/enquiry.routes.js";
 import selectionRoutes from "../modules/selection/selection.routes.js";
 import dashboardRoutes from "../modules/dashboard/dashboard.routes.js";
+import settingsRoutes from "../modules/settings/settings.routes.js";
 
 const routes = Router();
 
@@ -44,5 +45,6 @@ routes.use("/clients", clientRoutes);
 routes.use("/enquiries", enquiryRoutes);
 routes.use("/selections", selectionRoutes);
 routes.use("/dashboard", dashboardRoutes);
+routes.use("/settings", settingsRoutes);
 
 export default routes;

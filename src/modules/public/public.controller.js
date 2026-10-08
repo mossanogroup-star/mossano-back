@@ -32,16 +32,20 @@ import {
   AVAILABILITY_LABELS,
 } from "../stone/stone.constants.js";
 import { whatsappLink, sourcingMessage } from "../../utils/whatsapp.js";
+import { settingsService } from "../settings/settings.service.js";
 
 /**
  * Everything the storefront needs that never changes per request: brand facts,
  * the taxonomies its filter labels come from, and the default WhatsApp link.
  * Fetched once and held, so a filter chip never has to guess its own label.
  */
-const config = asyncHandler(async (_req, res) =>
-  sendSuccess(res, {
+const config = asyncHandler(async (_req, res) => {
+  const settings = await settingsService.get();
+  return sendSuccess(res, {
     data: {
       brand,
+      // Phase-4 feedback — which optional pages the menus link to.
+      pages: { looks: settings.showLooks, applications: settings.showApplications },
       whatsapp: {
         general: whatsappLink(sourcingMessage()),
         number: brand.whatsappNumber,
@@ -61,8 +65,8 @@ const config = asyncHandler(async (_req, res) =>
         availability: AVAILABILITY_LABELS,
       },
     },
-  }),
-);
+  });
+});
 
 const home = asyncHandler(async (_req, res) => {
   const data = await publicService.home();

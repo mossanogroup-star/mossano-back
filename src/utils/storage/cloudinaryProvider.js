@@ -37,10 +37,10 @@ function uploadBuffer(buffer, options) {
  * Burnt into every delivered rendition, images and video alike. A screenshot
  * cannot be blocked by any website; a screenshot that carries the name can be.
  * Small and bottom-right at the client's request, so it does not compete with
- * the stone. Scaled to the rendition's width so a 400px card and a 2000px
- * detail view read the same.
+ * the stone. Scaled to the rendition, so a 400px card and a 2000px detail view
+ * read the same.
  */
-const WATERMARK = [
+const markLayers = (size, x) => [
   {
     overlay: {
       font_family: "Arial",
@@ -54,12 +54,30 @@ const WATERMARK = [
     // A dark outline, so the mark still reads on white marble.
     border: "3px_solid_rgb:00000080",
     opacity: 60,
-    width: 0.16,
+    ...size,
     flags: "relative",
     crop: "scale",
   },
   // x/y under 1 are fractions of the image, so the margin scales with it.
-  { flags: "layer_apply", gravity: "south_east", x: 0.03, y: 0.04 },
+  { flags: "layer_apply", gravity: "south_east", x, y: 0.04 },
+];
+
+const WATERMARK = markLayers({ width: 0.16 }, 0.03);
+
+/**
+ * Phase-4 feedback — the storefront crops every preview to its frame
+ * (object-cover, anchored bottom-right), and a mark sized from the width of a
+ * wide slab was wider than what a phone's tall hero keeps, so it was cut. On
+ * anything wider than 4:3 the mark is sized from the height instead, which
+ * every crop keeps whole. Images only: the condition is not worth proving on
+ * video.
+ */
+const IMAGE_WATERMARK = [
+  { if: "ar_gt_1.33" },
+  ...markLayers({ height: 0.035 }, 0.02),
+  { if: "else" },
+  ...WATERMARK,
+  { if: "end" },
 ];
 
 /**
@@ -167,7 +185,7 @@ const cloudinaryProvider = {
         { width, height, crop },
         // Tile previews loop silently; dropping the track saves the bytes.
         ...(mute ? [{ audio_codec: "none" }] : []),
-        ...(watermark ? WATERMARK : []),
+        ...(watermark ? (resourceType === "image" ? IMAGE_WATERMARK : WATERMARK) : []),
         ...(info ? [{ flags: "getinfo" }] : []),
         ...(placeholder ? [{ effect: "blur:300" }] : []),
         { quality: placeholder ? "auto:low" : "auto", fetch_format: "auto" },

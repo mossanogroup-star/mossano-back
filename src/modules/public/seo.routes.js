@@ -15,6 +15,7 @@ import { env } from "../../config/env.js";
 import { stoneRepository } from "../stone/stone.repository.js";
 import { editRepository } from "../edit/edit.repository.js";
 import { applicationRepository } from "../application/application.repository.js";
+import { settingsService } from "../settings/settings.service.js";
 import { LOOKS, APPLICATIONS } from "../stone/stone.constants.js";
 import { asyncHandler } from "../../utils/asyncHandler.js";
 
@@ -69,18 +70,17 @@ router.get(
   asyncHandler(async (_req, res) => {
     const base = env.PUBLIC_BASE_URL;
 
-    const [stones, edits, projects] = await Promise.all([
+    const [stones, edits, projects, settings] = await Promise.all([
       stoneRepository.allPublishedSlugs(),
       editRepository.allPublishedSlugs(),
       applicationRepository.allPublishedSlugs(),
+      settingsService.get(),
     ]);
 
     const entries = [
       { loc: `${base}/`, changefreq: "weekly", priority: "1.0" },
       { loc: `${base}/new-edit`, changefreq: "monthly", priority: "0.9" },
       { loc: `${base}/shop`, changefreq: "weekly", priority: "0.9" },
-      { loc: `${base}/look`, changefreq: "monthly", priority: "0.7" },
-      { loc: `${base}/application`, changefreq: "monthly", priority: "0.7" },
       { loc: `${base}/projects`, changefreq: "monthly", priority: "0.7" },
       { loc: `${base}/clients`, changefreq: "monthly", priority: "0.6" },
       {
@@ -93,16 +93,15 @@ router.get(
 
       // Taxonomies are fixed by the requirement document, so every one is a
       // real page even when it currently holds nothing.
-      ...LOOKS.map((l) => ({
-        loc: `${base}/look/${l.slug}`,
-        changefreq: "weekly",
-        priority: "0.6",
-      })),
-      ...APPLICATIONS.map((a) => ({
-        loc: `${base}/application/${a.slug}`,
-        changefreq: "weekly",
-        priority: "0.6",
-      })),
+      // Phase-4 feedback — only while switched on in Site Settings.
+      ...(settings.showLooks
+        ? [`${base}/look`, ...LOOKS.map((l) => `${base}/look/${l.slug}`)]
+        : []
+      ).map((loc) => ({ loc, changefreq: "weekly", priority: "0.6" })),
+      ...(settings.showApplications
+        ? [`${base}/application`, ...APPLICATIONS.map((a) => `${base}/application/${a.slug}`)]
+        : []
+      ).map((loc) => ({ loc, changefreq: "weekly", priority: "0.6" })),
 
       // A stone page is the destination the whole site funnels towards, and the
       // one that gets forwarded. lastmod matters: availability changes, and a
