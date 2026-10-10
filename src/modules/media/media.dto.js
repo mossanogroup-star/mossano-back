@@ -122,7 +122,9 @@ function toMediaOptionDto(doc) {
 }
 
 /**
- * The same image, prepared for a full-bleed hero: backdrop borders trimmed.
+ * The same image, prepared for a full-bleed hero: backdrop borders trimmed,
+ * and no MOSSANO mark — client request (10 Oct 2026): the Black Marquina
+ * on the home slider's first slide is shown clean. Everywhere else keeps it.
  *
  * Kept separate from toMediaDto because the trim only earns its cost where the
  * image runs edge to edge. On a card the border is a few pixels nobody notices,
@@ -139,9 +141,10 @@ function toHeroMediaDto(doc) {
       derive(doc, {
         width: doc.width,
         trim: doc.trimSafe !== false,
+        watermark: false,
       }) || base.url,
     // trim only where it is safe for this image — see Media.trimSafe.
-    srcset: buildSrcset(doc, { trim: doc.trimSafe !== false, upscaleTo: 2880 }),
+    srcset: buildSrcset(doc, { trim: doc.trimSafe !== false, upscaleTo: 2880, watermark: false }),
   };
 }
 

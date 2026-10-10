@@ -76,13 +76,10 @@ const MATERIALS = [
 
 /**
  * Phase-3 feedback names the ten, in this order. "Exotic" left the list and
- * became a Look — see LOOKS above — because it describes rarity rather than a
- * colour, and green, brown and red came back for the same reason they were cut
- * in Phase 1: the catalogue now has stock to put in them.
- *
- * ⚠ `colour` is an enum on the model, so any lot already saved as `exotic`
- * fails validation the next time it is written. scripts/migrateExoticColour.js
- * re-tags those lots as the Exotic look before this list ships.
+ * became a Look — see LOOKS above — and green, brown and red came back for the
+ * same reason they were cut in Phase 1: the catalogue now has stock to put in
+ * them. Exotic was added back here on 10 Oct 2026 at the client's request; the
+ * Look stays too.
  */
 const COLOURS = [
   { slug: "beige", label: "Beige" },
@@ -95,6 +92,9 @@ const COLOURS = [
   { slug: "red", label: "Red" },
   { slug: "onyx", label: "Onyx" },
   { slug: "travertine", label: "Travertine" },
+  // Client request (10 Oct 2026) — "in colour family please add exotic". Back
+  // as a colour as well as a Look: the team files rare lots under it in both.
+  { slug: "exotic", label: "Exotic" },
 ];
 
 /**
