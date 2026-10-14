@@ -100,7 +100,7 @@ const COLOURS = [
 /**
  * Phase-3 feedback — "in white we need sub category". White is most of what
  * MOSSANO imports, so one White filter returns half the catalogue; these are
- * the client's own six names for what is actually different about those lots.
+ * the client's own names for what is actually different about those lots.
  *
  * Only meaningful on a white lot. Nothing enforces that — a sub-category on a
  * black lot is a data-entry mistake, not a security problem, and the filter
@@ -113,6 +113,7 @@ const WHITE_SUBCATEGORIES = [
   { slug: "volakas", label: "Volakas" },
   { slug: "angilo-white", label: "Angilo White" },
   { slug: "vietnam-white", label: "Vietnam White" },
+  { slug: "swiss-white", label: "Swiss White" },
 ];
 
 const FINISHES = [
