@@ -28,6 +28,7 @@ import {
   MATERIALS,
   COLOURS,
   WHITE_SUBCATEGORIES,
+  GRANITE_COLOURS,
   FINISHES,
   AVAILABILITY_LABELS,
 } from "../stone/stone.constants.js";
@@ -58,6 +59,7 @@ const config = asyncHandler(async (_req, res) => {
         materials: MATERIALS,
         colours: COLOURS,
         whiteSubcategories: WHITE_SUBCATEGORIES,
+        graniteColours: GRANITE_COLOURS,
         // Generated from the flag files — see countries.generated.js. The admin
         // origin picker and every flag on the site read this one list.
         countries: COUNTRIES,

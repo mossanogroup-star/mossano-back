@@ -116,6 +116,18 @@ const WHITE_SUBCATEGORIES = [
   { slug: "swiss-white", label: "Swiss White" },
 ];
 
+/**
+ * Client request (22 Oct 2026) — a Granite section beneath White, carrying
+ * every colour, with the colour list above it renamed "Marble Colour".
+ *
+ * Its own field rather than `material: granite` plus `colour`: the two lists
+ * filter independently, so a customer can tick Marble Colour → White and
+ * Granite → Black together and get both, not the empty intersection. The
+ * options are the colour family itself, so a colour added there appears here
+ * too.
+ */
+const GRANITE_COLOURS = COLOURS;
+
 const FINISHES = [
   { slug: "polished", label: "Polished" },
   { slug: "honed", label: "Honed" },
@@ -132,6 +144,7 @@ const APPLICATION_SLUGS = slugsOf(APPLICATIONS);
 const MATERIAL_SLUGS = slugsOf(MATERIALS);
 const COLOUR_SLUGS = slugsOf(COLOURS);
 const WHITE_SUBCATEGORY_SLUGS = slugsOf(WHITE_SUBCATEGORIES);
+const GRANITE_COLOUR_SLUGS = slugsOf(GRANITE_COLOURS);
 const FINISH_SLUGS = slugsOf(FINISHES);
 
 /** Live check: APPLICATIONS grows at runtime when the team adds one. */
@@ -149,6 +162,7 @@ export {
   MATERIALS,
   COLOURS,
   WHITE_SUBCATEGORIES,
+  GRANITE_COLOURS,
   FINISHES,
   LOOK_SLUGS,
   APPLICATION_SLUGS,
@@ -156,6 +170,7 @@ export {
   MATERIAL_SLUGS,
   COLOUR_SLUGS,
   WHITE_SUBCATEGORY_SLUGS,
+  GRANITE_COLOUR_SLUGS,
   FINISH_SLUGS,
   labelOf,
 };

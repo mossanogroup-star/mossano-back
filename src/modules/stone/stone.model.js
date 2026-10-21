@@ -17,6 +17,7 @@ import {
   MATERIAL_SLUGS,
   COLOUR_SLUGS,
   WHITE_SUBCATEGORY_SLUGS,
+  GRANITE_COLOUR_SLUGS,
   FINISH_SLUGS,
 } from "./stone.constants.js";
 
@@ -68,6 +69,8 @@ const StoneSchema = new mongoose.Schema(
     colour: { type: String, enum: COLOUR_SLUGS, index: true },
     /** Phase-3 feedback — the sub-category under White. */
     whiteSubcategory: { type: String, enum: WHITE_SUBCATEGORY_SLUGS, index: true },
+    /** Client request (22 Oct 2026) — the colour list under Granite. */
+    graniteColour: { type: String, enum: GRANITE_COLOUR_SLUGS, index: true },
 
     // Fields the client's catalogues do not contain. Absent, not guessed.
     /**
