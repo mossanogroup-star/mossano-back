@@ -9,6 +9,7 @@ import {
   GRANITE_COLOUR_SLUGS,
   LANDSCAPE_COLOUR_SLUGS,
   FINISH_SLUGS,
+  PLACEMENT_SLUGS,
 } from "./stone.constants.js";
 import { COUNTRY_CODES } from "../../config/countries.generated.js";
 import { SORTS } from "./stone.repository.js";
@@ -62,6 +63,7 @@ const stoneBodyCreateSchema = z.object({
   origin: optionalText(80),
   finish: z.enum(FINISH_SLUGS).optional(),
   thicknessMm: z.number().min(0).max(300).optional(),
+  placements: z.array(z.enum(PLACEMENT_SLUGS)).max(PLACEMENT_SLUGS.length).optional(),
 
   slabLengthIn: z.number().min(0).max(400).optional(),
   slabWidthIn: z.number().min(0).max(400).optional(),

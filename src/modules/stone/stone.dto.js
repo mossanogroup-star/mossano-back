@@ -11,6 +11,7 @@ import {
   GRANITE_COLOURS,
   LANDSCAPE_COLOURS,
   FINISHES,
+  PLACEMENTS,
   labelOf,
 } from "./stone.constants.js";
 import {
@@ -131,6 +132,9 @@ function toPublicStoneDto(doc) {
     finish: doc.finish ?? null,
     finishLabel: labelOf(FINISHES, doc.finish),
     thicknessMm: doc.thicknessMm ?? null,
+    /** Shown in the stone page's Application row, after the categories. */
+    placements: doc.placements ?? [],
+    placementLabels: (doc.placements ?? []).map((p) => labelOf(PLACEMENTS, p)).filter(Boolean),
 
     slabLengthIn: doc.slabLengthIn ?? null,
     slabWidthIn: doc.slabWidthIn ?? null,

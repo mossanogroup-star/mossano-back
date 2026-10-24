@@ -1,7 +1,7 @@
 import { stoneRepository } from "./stone.repository.js";
 import { mediaRepository } from "../media/media.repository.js";
 import { toMediaDto } from "../media/media.dto.js";
-import { AVAILABILITY_RANK } from "./stone.constants.js";
+import { AVAILABILITY_RANK, GRANITE_SPEC } from "./stone.constants.js";
 import { uniqueSlug } from "../../utils/slugify.js";
 import { nextSequence, ensureCounterAtLeast } from "../../utils/counter.js";
 import { AppError } from "../../utils/AppError.js";
@@ -84,6 +84,15 @@ function buildPatch(body, { touchVerified = true } = {}) {
   return patch;
 }
 
+/** Client request (24 Oct 2026) — granite is offered at 17–100 mm only. */
+function assertGraniteThickness(material, thicknessMm) {
+  if (material !== "granite" || thicknessMm == null) return;
+  const { min, max } = GRANITE_SPEC.thicknessMm;
+  if (thicknessMm < min || thicknessMm > max) {
+    throw new AppError(`Granite thickness must be ${min}–${max} mm`, 400);
+  }
+}
+
 const stoneService = {
   list(query) {
     return stoneRepository.findMany(query);
@@ -102,6 +111,7 @@ const stoneService = {
   },
 
   async create(body, user) {
+    assertGraniteThickness(body.material, body.thicknessMm);
     const patch = buildPatch(body);
 
     // The lot number beats a counter as a discriminator: two lots of Classic
@@ -125,6 +135,16 @@ const stoneService = {
   },
 
   async update(id, body, user) {
+    if (body.material !== undefined || body.thicknessMm !== undefined) {
+      const current =
+        body.material === undefined || body.thicknessMm === undefined
+          ? await stoneRepository.findById(id)
+          : null;
+      assertGraniteThickness(
+        body.material ?? current?.material,
+        body.thicknessMm ?? current?.thicknessMm,
+      );
+    }
     const patch = buildPatch(body);
 
     // A rename must not move the slug: links live in architects' notes for

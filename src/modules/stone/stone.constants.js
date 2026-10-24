@@ -147,7 +147,44 @@ const FINISHES = [
   { slug: "brushed", label: "Brushed" },
   { slug: "flamed", label: "Flamed" },
   { slug: "sandblasted", label: "Sandblasted" },
+  // Client request (24 Oct 2026) — the granite finishes the list above lacked.
+  { slug: "lappato", label: "Lappato" },
+  { slug: "bush-hammered", label: "Bush Hammered" },
+  { slug: "shot-blasted", label: "Shot Blast" },
+  { slug: "river-washed", label: "River Wash" },
+  { slug: "cnc", label: "CNC" },
 ];
+
+/**
+ * Client request (24 Oct 2026) — "Application: interior / exterior". Its own
+ * field rather than two more application categories: those each get a public
+ * Shop by Application page, and where a stone can go is a spec, not a page.
+ */
+const PLACEMENTS = [
+  { slug: "interior", label: "Interior" },
+  { slug: "exterior", label: "Exterior" },
+];
+
+/**
+ * Client request (24 Oct 2026) — what a granite lot is offered in. The admin
+ * fills in the origin and narrows the finish list and thickness to these
+ * while Granite is the material; the stone service holds the thickness to it.
+ */
+const GRANITE_SPEC = {
+  origin: "Indo Italian",
+  finishes: [
+    "polished",
+    "leathered",
+    "lappato",
+    "bush-hammered",
+    "sandblasted",
+    "shot-blasted",
+    "flamed",
+    "river-washed",
+    "cnc",
+  ],
+  thicknessMm: { min: 17, max: 100 },
+};
 
 const slugsOf = (list) => list.map((x) => x.slug);
 
@@ -159,6 +196,7 @@ const WHITE_SUBCATEGORY_SLUGS = slugsOf(WHITE_SUBCATEGORIES);
 const GRANITE_COLOUR_SLUGS = slugsOf(GRANITE_COLOURS);
 const LANDSCAPE_COLOUR_SLUGS = slugsOf(LANDSCAPE_COLOURS);
 const FINISH_SLUGS = slugsOf(FINISHES);
+const PLACEMENT_SLUGS = slugsOf(PLACEMENTS);
 
 /** Live check: APPLICATIONS grows at runtime when the team adds one. */
 const isApplicationSlug = (slug) => APPLICATION_SLUGS.includes(slug);
@@ -178,6 +216,8 @@ export {
   GRANITE_COLOURS,
   LANDSCAPE_COLOURS,
   FINISHES,
+  PLACEMENTS,
+  GRANITE_SPEC,
   LOOK_SLUGS,
   APPLICATION_SLUGS,
   isApplicationSlug,
@@ -187,5 +227,6 @@ export {
   GRANITE_COLOUR_SLUGS,
   LANDSCAPE_COLOUR_SLUGS,
   FINISH_SLUGS,
+  PLACEMENT_SLUGS,
   labelOf,
 };

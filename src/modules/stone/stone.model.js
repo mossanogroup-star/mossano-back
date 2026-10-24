@@ -20,6 +20,7 @@ import {
   GRANITE_COLOUR_SLUGS,
   LANDSCAPE_COLOUR_SLUGS,
   FINISH_SLUGS,
+  PLACEMENT_SLUGS,
 } from "./stone.constants.js";
 
 /**
@@ -86,6 +87,8 @@ const StoneSchema = new mongoose.Schema(
     origin: { type: String, trim: true, index: true },
     finish: { type: String, enum: FINISH_SLUGS },
     thicknessMm: { type: Number, min: 0 },
+    /** Client request (24 Oct 2026) — interior, exterior or both. */
+    placements: { type: [String], enum: PLACEMENT_SLUGS, default: [] },
 
     // Lot size, decoded from the catalogue captions
     // "Size- 73*59*94NOS" + "QTY- 2800 SQ FT" = 73in x 59in slabs, 94 of them,

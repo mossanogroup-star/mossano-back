@@ -31,6 +31,8 @@ import {
   GRANITE_COLOURS,
   LANDSCAPE_COLOURS,
   FINISHES,
+  PLACEMENTS,
+  GRANITE_SPEC,
   AVAILABILITY_LABELS,
 } from "../stone/stone.constants.js";
 import { whatsappLink, sourcingMessage } from "../../utils/whatsapp.js";
@@ -66,6 +68,8 @@ const config = asyncHandler(async (_req, res) => {
         // origin picker and every flag on the site read this one list.
         countries: COUNTRIES,
         finishes: FINISHES,
+        placements: PLACEMENTS,
+        graniteSpec: GRANITE_SPEC,
         availability: AVAILABILITY_LABELS,
       },
     },
