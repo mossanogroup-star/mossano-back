@@ -13,7 +13,7 @@ function toPublicApplicationDto(doc, stones) {
     id: String(doc._id),
     slug: doc.slug,
     title: doc.title,
-    application: doc.application,
+    application: doc.application ?? null,
     applicationLabel: labelOf(APPLICATIONS, doc.application),
     projectName: doc.projectName ?? null,
     location: doc.location ?? null,

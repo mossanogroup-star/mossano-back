@@ -30,7 +30,8 @@ const instagramUrlSchema = z
 
 const applicationBodyCreateSchema = z.object({
   title: z.string().trim().min(1, "Give this a title").max(160),
-  application: applicationSlugSchema,
+  // Client request (24 Oct 2026) — no longer asked for on Project Images.
+  application: applicationSlugSchema.optional(),
   projectName: optionalText(160),
   location: optionalText(160),
   architect: optionalText(160),

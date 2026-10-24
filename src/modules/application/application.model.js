@@ -42,10 +42,12 @@ const ApplicationSchema = new mongoose.Schema(
       index: true,
     },
 
-    /** Which of the seven categories this belongs to. */
+    /**
+     * Which category this belongs to. Optional since 24 Oct 2026, when the
+     * client took the Application field off the Project Images tab.
+     */
     application: {
       type: String,
-      required: true,
       index: true,
     },
 
