@@ -23,6 +23,13 @@ if (env.CLOUDINARY_CONFIGURED) {
  */
 const AUTO_RESOURCE_TYPE = "auto";
 
+/**
+ * The SDK aborts an upload after 60 seconds by default, which a phone video of
+ * a few dozen MB routinely exceeds — the admin saw "Request Timeout" and no
+ * video. Ten minutes covers the 100 MB ceiling on a slow link.
+ */
+const UPLOAD_TIMEOUT_MS = 10 * 60 * 1000;
+
 function uploadBuffer(buffer, options) {
   return new Promise((resolve, reject) => {
     const stream = cloudinary.uploader.upload_stream(options, (error, result) => {
@@ -116,6 +123,7 @@ const cloudinaryProvider = {
       // Not reachable by a bare URL: every delivery must be signed, so the
       // watermark cannot be stripped by editing the address.
       type: "authenticated",
+      timeout: UPLOAD_TIMEOUT_MS,
       ...(isVideo ? {} : SHRINK_IMAGE),
     });
 

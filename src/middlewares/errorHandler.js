@@ -46,9 +46,12 @@ function errorHandler(err, _req, res, _next) {
 
   // Multer: file too large, too many files, unexpected field.
   if (err.name === "MulterError") {
+    // multer's ceiling is the video limit (see upload.js), so quoting the image
+    // limit here told the admin a 40 MB video was over "10 MB".
     const message =
       err.code === "LIMIT_FILE_SIZE"
-        ? `File is larger than the ${env.MAX_UPLOAD_MB} MB limit.`
+        ? `File is too large. Images can be up to ${env.MAX_UPLOAD_MB} MB, ` +
+          `videos up to ${env.MAX_VIDEO_UPLOAD_MB} MB.`
         : err.message;
     return fail(res, 413, "PAYLOAD_TOO_LARGE", message);
   }

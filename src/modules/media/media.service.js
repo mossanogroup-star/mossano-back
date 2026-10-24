@@ -90,12 +90,24 @@ const mediaService = {
     // than being served to the browser inside an <img>.
     const isVideo = isVideoUpload(file);
     const resolvedKind = isVideo ? "video" : kind;
-    const stored = await storage.upload(file.buffer, {
-      filename: file.originalname,
-      mimeType: file.mimetype,
-      isVideo,
-      folder: FOLDER_BY_KIND[resolvedKind] || "general",
-    });
+    let stored;
+    try {
+      stored = await storage.upload(file.buffer, {
+        filename: file.originalname,
+        mimeType: file.mimetype,
+        isVideo,
+        folder: FOLDER_BY_KIND[resolvedKind] || "general",
+      });
+    } catch (err) {
+      // Cloudinary rejects with a plain object, not an Error, so without this
+      // the admin saw only "Internal server error" and never the real reason.
+      logger.warn({ err, filename: file.originalname }, "Storage provider rejected upload");
+      throw new AppError(
+        `${file.originalname} could not be stored: ${err?.message || "storage provider error"}`,
+        502,
+        { code: "STORAGE_UPLOAD_FAILED" },
+      );
+    }
 
     return mediaRepository.create({
       trimSafe: await isTrimSafe(stored),
@@ -132,7 +144,9 @@ const mediaService = {
     }
 
     if (!uploaded.length) {
-      throw new AppError("None of the files could be uploaded", 400, {
+      // The first reason goes in the message itself: it is what the admin's
+      // toast shows, and "None of the files could be uploaded" alone says nothing.
+      throw new AppError(`None of the files could be uploaded — ${errors[0].message}`, 400, {
         details: errors,
       });
     }

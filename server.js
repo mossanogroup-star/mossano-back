@@ -16,6 +16,9 @@ async function bootstrap() {
   const app = await createApp();
 
   const server = http.createServer(app);
+  // Node's default is 5 minutes for the whole request, which a 100 MB video on
+  // a phone connection plus the Cloudinary hand-off can exceed.
+  server.requestTimeout = 15 * 60 * 1000;
   server.listen(env.PORT, () => {
     logger.info(
       { port: env.PORT, env: env.NODE_ENV, storefront: env.PUBLIC_BASE_URL },
