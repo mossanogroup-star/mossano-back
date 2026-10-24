@@ -7,6 +7,7 @@ import {
   COLOUR_SLUGS,
   WHITE_SUBCATEGORY_SLUGS,
   GRANITE_COLOUR_SLUGS,
+  LANDSCAPE_COLOUR_SLUGS,
   FINISH_SLUGS,
 } from "./stone.constants.js";
 import { COUNTRY_CODES } from "../../config/countries.generated.js";
@@ -56,6 +57,7 @@ const stoneBodyCreateSchema = z.object({
   colour: z.enum(COLOUR_SLUGS).optional(),
   whiteSubcategory: z.enum(WHITE_SUBCATEGORY_SLUGS).optional(),
   graniteColour: z.enum(GRANITE_COLOUR_SLUGS).optional(),
+  landscapeColour: z.enum(LANDSCAPE_COLOUR_SLUGS).optional(),
   originCountry: z.enum(COUNTRY_CODES).optional(),
   origin: optionalText(80),
   finish: z.enum(FINISH_SLUGS).optional(),
@@ -97,6 +99,7 @@ const stoneFilters = {
   colour: csvQuerySchema,
   whiteSubcategory: csvQuerySchema,
   graniteColour: csvQuerySchema,
+  landscapeColour: csvQuerySchema,
   look: csvQuerySchema,
   application: csvQuerySchema,
   availability: csvQuerySchema,

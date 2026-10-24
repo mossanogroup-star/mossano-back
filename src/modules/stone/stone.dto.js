@@ -9,6 +9,7 @@ import {
   COLOURS,
   WHITE_SUBCATEGORIES,
   GRANITE_COLOURS,
+  LANDSCAPE_COLOURS,
   FINISHES,
   labelOf,
 } from "./stone.constants.js";
@@ -121,6 +122,8 @@ function toPublicStoneDto(doc) {
     whiteSubcategoryLabel: labelOf(WHITE_SUBCATEGORIES, doc.whiteSubcategory),
     graniteColour: doc.graniteColour ?? null,
     graniteColourLabel: labelOf(GRANITE_COLOURS, doc.graniteColour),
+    landscapeColour: doc.landscapeColour ?? null,
+    landscapeColourLabel: labelOf(LANDSCAPE_COLOURS, doc.landscapeColour),
     origin: doc.origin ?? null,
     /** The flag is /flags/<code>.svg — no lookup table anywhere. */
     originCountry: doc.originCountry ?? null,

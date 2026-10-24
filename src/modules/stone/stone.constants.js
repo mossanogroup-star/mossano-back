@@ -72,6 +72,9 @@ const MATERIALS = [
   { slug: "quartzite", label: "Quartzite" },
   { slug: "limestone", label: "Limestone" },
   { slug: "semi-precious", label: "Semi-Precious" },
+  // Client request (24 Oct 2026) — landscape stone gets its own colour list in
+  // the shop, shown in the admin while this is the material.
+  { slug: "landscape", label: "Landscape" },
 ];
 
 /**
@@ -126,7 +129,16 @@ const WHITE_SUBCATEGORIES = [
  * options are the colour family itself, so a colour added there appears here
  * too.
  */
-const GRANITE_COLOURS = COLOURS;
+// Client request (24 Oct 2026) — Onyx and Travertine are stones, not granite
+// colours, so the list leaves them out.
+const NOT_GRANITE = ["onyx", "travertine"];
+const GRANITE_COLOURS = COLOURS.filter((c) => !NOT_GRANITE.includes(c.slug));
+
+/**
+ * Client request (24 Oct 2026) — a Landscape section beneath Granite with a
+ * single option, Landscape. Its own field for the same reason as Granite's.
+ */
+const LANDSCAPE_COLOURS = [{ slug: "landscape", label: "Landscape" }];
 
 const FINISHES = [
   { slug: "polished", label: "Polished" },
@@ -145,6 +157,7 @@ const MATERIAL_SLUGS = slugsOf(MATERIALS);
 const COLOUR_SLUGS = slugsOf(COLOURS);
 const WHITE_SUBCATEGORY_SLUGS = slugsOf(WHITE_SUBCATEGORIES);
 const GRANITE_COLOUR_SLUGS = slugsOf(GRANITE_COLOURS);
+const LANDSCAPE_COLOUR_SLUGS = slugsOf(LANDSCAPE_COLOURS);
 const FINISH_SLUGS = slugsOf(FINISHES);
 
 /** Live check: APPLICATIONS grows at runtime when the team adds one. */
@@ -163,6 +176,7 @@ export {
   COLOURS,
   WHITE_SUBCATEGORIES,
   GRANITE_COLOURS,
+  LANDSCAPE_COLOURS,
   FINISHES,
   LOOK_SLUGS,
   APPLICATION_SLUGS,
@@ -171,6 +185,7 @@ export {
   COLOUR_SLUGS,
   WHITE_SUBCATEGORY_SLUGS,
   GRANITE_COLOUR_SLUGS,
+  LANDSCAPE_COLOUR_SLUGS,
   FINISH_SLUGS,
   labelOf,
 };

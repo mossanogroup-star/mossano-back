@@ -44,6 +44,7 @@ function buildFilter({
   colour,
   whiteSubcategory,
   graniteColour,
+  landscapeColour,
   origin,
   originCountry,
   look,
@@ -67,6 +68,7 @@ function buildFilter({
   if (colour?.length) filter.colour = { $in: colour };
   if (whiteSubcategory?.length) filter.whiteSubcategory = { $in: whiteSubcategory };
   if (graniteColour?.length) filter.graniteColour = { $in: graniteColour };
+  if (landscapeColour?.length) filter.landscapeColour = { $in: landscapeColour };
   if (look?.length) filter.looks = { $in: look };
   if (application?.length) filter.applications = { $in: application };
   if (availability?.length) filter.availability = { $in: availability };
@@ -200,6 +202,7 @@ const stoneRepository = {
       colour,
       whiteSubcategory,
       graniteColour,
+      landscapeColour,
       finish,
       availability,
       looks,
@@ -210,6 +213,7 @@ const stoneRepository = {
       StoneModel.aggregate(countBy("colour")),
       StoneModel.aggregate(countBy("whiteSubcategory")),
       StoneModel.aggregate(countBy("graniteColour")),
+      StoneModel.aggregate(countBy("landscapeColour")),
       StoneModel.aggregate(countBy("finish")),
       StoneModel.aggregate(countBy("availability")),
       StoneModel.aggregate(countByArray("looks")),
@@ -222,6 +226,7 @@ const stoneRepository = {
       colour,
       whiteSubcategory,
       graniteColour,
+      landscapeColour,
       finish,
       availability,
       looks,
