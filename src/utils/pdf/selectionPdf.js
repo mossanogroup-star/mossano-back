@@ -65,49 +65,120 @@ function printUrl(media) {
   );
 }
 
+/** "9619176132" → "+91 96191 76132", the way the brochure prints it. */
+const formatPhone = (n) => `+91 ${n.slice(0, 5)} ${n.slice(5)}`;
+
 /**
- * ⚠ In pdfkit, letter-spacing is an option on `.text()`, not a chainable
- * document method. `doc.characterSpacing(4)` throws — it does not exist.
+ * Client request (27 Oct 2026) — the company name and number were only in a
+ * 7.5pt line at the foot of the page. They now head every page, letterhead
+ * style, so whoever the PDF is forwarded to sees who to call first.
  */
-function tracked(doc, text, spacing, options = {}) {
-  doc.text(text, { characterSpacing: spacing, ...options });
+function drawLetterhead(doc) {
+  const width = doc.page.width - PAGE_MARGIN * 2;
+  const top = 34;
+
+  doc.font("Helvetica-Bold").fontSize(17).fillColor(INK);
+  doc.text(brand.name, PAGE_MARGIN, top, { characterSpacing: 3, lineBreak: false });
+  doc.font("Helvetica").fontSize(7.5).fillColor(MUTED);
+  doc.text(brand.tagline.toUpperCase(), PAGE_MARGIN, top + 23, {
+    characterSpacing: 1.5,
+    lineBreak: false,
+  });
+
+  doc.font("Helvetica-Bold").fontSize(10).fillColor(INK);
+  doc.text(brand.phones.map(formatPhone).join("   |   "), PAGE_MARGIN, top, {
+    width,
+    align: "right",
+    lineBreak: false,
+  });
+  doc.font("Helvetica").fontSize(8.5).fillColor(MUTED);
+  doc.text(`${brand.email}   ·   ${brand.canonicalDomain}`, PAGE_MARGIN, top + 15, {
+    width,
+    align: "right",
+    lineBreak: false,
+  });
+  doc.text(`${brand.address.city}, ${brand.address.country}`, PAGE_MARGIN, top + 27, {
+    width,
+    align: "right",
+    lineBreak: false,
+  });
+
+  doc
+    .strokeColor(BRASS)
+    .lineWidth(1)
+    .moveTo(PAGE_MARGIN, top + 46)
+    .lineTo(doc.page.width - PAGE_MARGIN, top + 46)
+    .stroke();
 }
 
-function drawHeader(doc, selection) {
-  doc.fillColor(INK).font("Helvetica").fontSize(16);
-  tracked(doc, "MOSSANO MARMO", 4, { align: "left" });
+/**
+ * The title and who the document is for. Client request (27 Oct 2026) — the
+ * customer's details were a line of grey text, or "—" on a shortlist; they
+ * now sit in their own panel at the top of the first page.
+ */
+function drawIntro(doc, selection) {
+  doc.font("Helvetica").fillColor(INK).fontSize(22);
+  doc.text(selection.title, PAGE_MARGIN, doc.page.margins.top, {
+    width: doc.page.width - PAGE_MARGIN * 2,
+  });
+  doc.moveDown(0.8);
 
-  doc.moveDown(0.2).fillColor(MUTED).fontSize(8);
-  tracked(doc, "CURATED NATURAL STONE. SOURCED GLOBALLY.", 1.5);
+  const details = [
+    ["Project", selection.projectName],
+    ["Phone", selection.customerPhone],
+    ["Email", selection.customerEmail],
+  ].filter(([, value]) => value);
 
-  doc.moveDown(1.4);
-  doc
-    .strokeColor(RULE)
-    .lineWidth(0.5)
-    .moveTo(PAGE_MARGIN, doc.y)
-    .lineTo(doc.page.width - PAGE_MARGIN, doc.y)
-    .stroke();
-  doc.moveDown(1.4);
+  const preparedOn = new Date(selection.preparedOn).toLocaleDateString("en-IN", {
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  });
+  const facts = [
+    ["Prepared on", preparedOn],
+    ["Reference", selection.reference],
+  ].filter(([, value]) => value);
 
-  doc.fillColor(INK).fontSize(22).font("Helvetica").text(selection.title);
-  doc.moveDown(0.6);
+  const width = doc.page.width - PAGE_MARGIN * 2;
+  const top = doc.y;
+  const height = Math.max(62 + details.length * 15, 20 + facts.length * 30) + 6;
+  const leftX = PAGE_MARGIN + 18;
+  const rightX = PAGE_MARGIN + width * 0.64;
 
-  doc.fontSize(10).fillColor(MUTED);
-  doc.text(`Prepared for: ${selection.customerName}`);
-  if (selection.projectName) doc.text(`Project: ${selection.projectName}`);
-  // `preparedOn`, not `createdAt` — the public DTO renames it, and reading the
-  // document's field here produced "Invalid Date" on the page the customer sees.
-  doc.text(
-    `Prepared on: ${new Date(selection.preparedOn).toLocaleDateString("en-IN", {
-      day: "numeric",
-      month: "long",
-      year: "numeric",
-    })}`,
-  );
-  doc.text(`Reference: ${selection.reference}`);
+  doc.rect(PAGE_MARGIN, top, width, height).fillColor("#f6f1ea").fill();
+  doc.rect(PAGE_MARGIN, top, 3, height).fillColor(BRASS).fill();
+
+  doc.font("Helvetica-Bold").fontSize(7.5).fillColor(BRASS);
+  doc.text("PREPARED FOR", leftX, top + 16, { characterSpacing: 1.5, lineBreak: false });
+  doc.font("Helvetica-Bold").fontSize(16).fillColor(INK);
+  doc.text(selection.customerName || "—", leftX, top + 30, { width: rightX - leftX - 16 });
+
+  let y = top + 56;
+  for (const [label, value] of details) {
+    doc.font("Helvetica").fontSize(9.5).fillColor(MUTED);
+    doc.text(`${label}:`, leftX, y, { width: 50, lineBreak: false });
+    doc.fillColor(INK).text(value, leftX + 52, y, { width: rightX - leftX - 68, lineBreak: false });
+    y += 15;
+  }
+
+  y = top + 16;
+  for (const [label, value] of facts) {
+    doc.font("Helvetica-Bold").fontSize(7.5).fillColor(BRASS);
+    doc.text(label.toUpperCase(), rightX, y, { characterSpacing: 1.5, lineBreak: false });
+    doc.font("Helvetica").fontSize(10).fillColor(INK);
+    doc.text(value, rightX, y + 12, { width: PAGE_MARGIN + width - rightX - 12, lineBreak: false });
+    y += 30;
+  }
+
+  doc.x = PAGE_MARGIN;
+  doc.y = top + height + 16;
+  doc.font("Helvetica");
 
   if (selection.introduction) {
-    doc.moveDown(1).fillColor(INK).fontSize(10).text(selection.introduction, { width: 430 });
+    doc
+      .fillColor(INK)
+      .fontSize(10)
+      .text(selection.introduction, PAGE_MARGIN, doc.y, { width: 430 });
   }
 }
 
@@ -199,19 +270,50 @@ function drawStone(doc, stone, imageBuffer, index) {
   doc.moveDown(1);
 }
 
-function drawFooter(doc, { whatsappNumber, email }) {
-  const y = doc.page.height - 40;
+/**
+ * Every page, with the page count. The bottom margin is lifted while it is
+ * drawn: text below it would otherwise make pdfkit start a new, blank page.
+ */
+function drawFooter(doc, page, pageCount) {
+  const bottom = doc.page.margins.bottom;
+  doc.page.margins.bottom = 0;
+
+  const width = doc.page.width - PAGE_MARGIN * 2;
+  const y = doc.page.height - 46;
   doc
-    .fillColor(MUTED)
-    .fontSize(7.5)
-    .text(
-      // Read from brand rather than written out, so the printed address cannot
-      // drift from the one on the contact page.
-      `MOSSANO MARMO  ·  ${brand.address.city}  ·  ${email}  ·  +${whatsappNumber}`,
-      PAGE_MARGIN,
-      y,
-      { width: doc.page.width - PAGE_MARGIN * 2, align: "center" },
-    );
+    .strokeColor(RULE)
+    .lineWidth(0.5)
+    .moveTo(PAGE_MARGIN, y - 10)
+    .lineTo(doc.page.width - PAGE_MARGIN, y - 10)
+    .stroke();
+
+  // Read from brand rather than written out, so the printed address cannot
+  // drift from the one on the contact page.
+  const { line1, city, postalCode } = brand.address;
+  doc.font("Helvetica-Bold").fontSize(8.5).fillColor(INK);
+  doc.text(
+    `${brand.name}   ·   ${brand.phones.map(formatPhone).join("  /  ")}   ·   ${brand.email}`,
+    PAGE_MARGIN,
+    y,
+    {
+      width,
+      align: "center",
+      lineBreak: false,
+    },
+  );
+  doc.font("Helvetica").fontSize(7.5).fillColor(MUTED);
+  doc.text(`${line1}, ${city} ${postalCode}   ·   ${brand.canonicalDomain}`, PAGE_MARGIN, y + 13, {
+    width,
+    align: "center",
+    lineBreak: false,
+  });
+  doc.text(`Page ${page} of ${pageCount}`, PAGE_MARGIN, y + 13, {
+    width,
+    align: "right",
+    lineBreak: false,
+  });
+
+  doc.page.margins.bottom = bottom;
 }
 
 /**
@@ -220,10 +322,11 @@ function drawFooter(doc, { whatsappNumber, email }) {
  * PDF of undefined fields — a document has no `specs` at all.
  *
  * @param {object} selection public selection DTO; `stones` carries stone DTOs
- *   in curated order, each with its `selectionNote`
+ *   in curated order, each with its `selectionNote`. `customerPhone` and
+ *   `customerEmail` are added by the caller — the public DTO leaves them out.
  * @returns {Promise<Buffer>}
  */
-async function buildSelectionPdf(selection, { whatsappNumber, email } = {}) {
+async function buildSelectionPdf(selection) {
   const items = selection.stones ?? [];
 
   // Fetched up front and in parallel: doing it inside the draw loop would
@@ -232,9 +335,11 @@ async function buildSelectionPdf(selection, { whatsappNumber, email } = {}) {
     items.map((stone) => fetchImage(printUrl(stone.primaryImage) ?? stone.primaryImageUrl)),
   );
 
+  // The top and bottom margins leave room for the letterhead and footer
+  // stamped onto every page at the end.
   const doc = new PDFDocument({
     size: "A4",
-    margin: PAGE_MARGIN,
+    margins: { top: 104, bottom: 72, left: PAGE_MARGIN, right: PAGE_MARGIN },
     bufferPages: true,
   });
   const chunks = [];
@@ -245,8 +350,8 @@ async function buildSelectionPdf(selection, { whatsappNumber, email } = {}) {
     doc.on("error", reject);
   });
 
-  drawHeader(doc, selection);
-  doc.moveDown(1.5);
+  drawIntro(doc, selection);
+  doc.moveDown(1);
 
   items.forEach((stone, i) => drawStone(doc, stone, buffers[i], i));
 
@@ -254,12 +359,13 @@ async function buildSelectionPdf(selection, { whatsappNumber, email } = {}) {
     doc.fillColor(MUTED).fontSize(10).text("No stones have been added to this selection yet.");
   }
 
-  // bufferPages defers page flushing, so the footer can be stamped onto every
-  // page after the count is known.
+  // bufferPages defers page flushing, so the letterhead and footer can be
+  // stamped onto every page after the count is known.
   const range = doc.bufferedPageRange();
   for (let i = range.start; i < range.start + range.count; i += 1) {
     doc.switchToPage(i);
-    drawFooter(doc, { whatsappNumber, email });
+    drawLetterhead(doc);
+    drawFooter(doc, i - range.start + 1, range.count);
   }
 
   doc.end();

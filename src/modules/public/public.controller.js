@@ -208,16 +208,18 @@ const favourites = asyncHandler(async (req, res) => {
 const favouritesPdf = asyncHandler(async (req, res) => {
   const stones = await publicService.favourites(req.validated.body.slugs);
 
-  const buffer = await buildSelectionPdf(
-    {
-      title: "Your Shortlist",
-      customerName: req.validated.body.name?.trim() || "—",
-      projectName: null,
-      preparedOn: new Date(),
-      stones: stones.map(toPublicStoneDto),
-    },
-    { whatsappNumber: brand.whatsappNumber, email: brand.email },
-  );
+  const { name, phone, email, projectName } = req.validated.body;
+  const buffer = await buildSelectionPdf({
+    title: "Your Shortlist",
+    // Client request (27 Oct 2026) — who it is for, printed in the PDF's
+    // Prepared for panel. The shortlist page asks for these before download.
+    customerName: name || "—",
+    customerPhone: phone || null,
+    customerEmail: email || null,
+    projectName: projectName || null,
+    preparedOn: new Date(),
+    stones: stones.map(toPublicStoneDto),
+  });
 
   res.setHeader("Content-Type", "application/pdf");
   res.setHeader("Content-Disposition", 'attachment; filename="MOSSANO-Shortlist.pdf"');
@@ -306,9 +308,12 @@ const selectionPdf = asyncHandler(async (req, res) => {
   const doc = await selectionService.getByToken(req.validated.params.token);
   const items = await selectionService.resolveItems(doc);
 
-  const buffer = await buildSelectionPdf(toPublicSelectionDto(doc, items), {
-    whatsappNumber: brand.whatsappNumber,
-    email: brand.email,
+  // The customer's own phone and email go on their PDF, though the public
+  // DTO leaves them off the web page.
+  const buffer = await buildSelectionPdf({
+    ...toPublicSelectionDto(doc, items),
+    customerPhone: doc.customerPhone ?? null,
+    customerEmail: doc.customerEmail ?? null,
   });
 
   const filename = `MOSSANO-${doc.reference}.pdf`;

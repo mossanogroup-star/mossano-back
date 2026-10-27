@@ -44,6 +44,10 @@ const publicFavouritesPdfSchema = makeSchema({
   body: z.object({
     slugs: z.array(z.string().trim().min(1).max(160)).max(100).default([]),
     name: z.string().trim().max(120).optional(),
+    // Client request (27 Oct 2026) — the rest of the Prepared for panel.
+    phone: z.string().trim().max(24).optional(),
+    email: z.string().trim().max(160).optional(),
+    projectName: z.string().trim().max(160).optional(),
   }),
 });
 
