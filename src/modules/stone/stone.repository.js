@@ -1,6 +1,13 @@
 import { StoneModel } from "./stone.model.js";
 import { escapeRegex, runPagedQuery, softDeleteById } from "../../utils/repositoryHelpers.js";
 
+/**
+ * Client request (27 Oct 2026) — "when we add granite it goes to marble".
+ * Marble Colour is marble's list: granite and landscape lots have their own
+ * below it, so they are kept out of it even when their `colour` is set.
+ */
+const OWN_COLOUR_LIST = ["granite", "landscape"];
+
 const POPULATE = [
   {
     path: "images",
@@ -65,7 +72,10 @@ function buildFilter({
 
   // Array filters accept one value or many: ?look=dramatic,dark-moody
   if (material?.length) filter.material = { $in: material };
-  if (colour?.length) filter.colour = { $in: colour };
+  if (colour?.length) {
+    filter.colour = { $in: colour };
+    filter.material = { ...(filter.material ?? {}), $nin: OWN_COLOUR_LIST };
+  }
   if (whiteSubcategory?.length) filter.whiteSubcategory = { $in: whiteSubcategory };
   if (graniteColour?.length) filter.graniteColour = { $in: graniteColour };
   if (landscapeColour?.length) filter.landscapeColour = { $in: landscapeColour };
@@ -182,8 +192,8 @@ const stoneRepository = {
    */
   async facets(baseFilter = {}) {
     const match = { isDeleted: false, isPublished: true, ...baseFilter };
-    const countBy = (field) => [
-      { $match: match },
+    const countBy = (field, extra = {}) => [
+      { $match: { ...match, ...extra } },
       { $group: { _id: `$${field}`, count: { $sum: 1 } } },
       { $match: { _id: { $ne: null } } },
       { $sort: { count: -1, _id: 1 } },
@@ -210,7 +220,7 @@ const stoneRepository = {
       originCountry,
     ] = await Promise.all([
       StoneModel.aggregate(countBy("material")),
-      StoneModel.aggregate(countBy("colour")),
+      StoneModel.aggregate(countBy("colour", { material: { $nin: OWN_COLOUR_LIST } })),
       StoneModel.aggregate(countBy("whiteSubcategory")),
       StoneModel.aggregate(countBy("graniteColour")),
       StoneModel.aggregate(countBy("landscapeColour")),

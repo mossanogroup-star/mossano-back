@@ -1,7 +1,12 @@
 import { stoneRepository } from "./stone.repository.js";
 import { mediaRepository } from "../media/media.repository.js";
 import { toMediaDto } from "../media/media.dto.js";
-import { AVAILABILITY_RANK, GRANITE_SPEC, thicknessRange } from "./stone.constants.js";
+import {
+  AVAILABILITY_RANK,
+  GRANITE_SPEC,
+  GRANITE_COLOUR_SLUGS,
+  thicknessRange,
+} from "./stone.constants.js";
 import { uniqueSlug } from "../../utils/slugify.js";
 import { nextSequence, ensureCounterAtLeast } from "../../utils/counter.js";
 import { AppError } from "../../utils/AppError.js";
@@ -75,6 +80,18 @@ function buildPatch(body, { touchVerified = true } = {}) {
     patch.applicationImages = body.applicationImageIds;
     delete patch.applicationImageIds;
   }
+
+  // Client request (27 Oct 2026) — a granite lot whose colour came in as
+  // `colour` alone still reaches the shop's Granite list, and a landscape lot
+  // always sits under its single Landscape option.
+  if (
+    body.material === "granite" &&
+    !body.graniteColour &&
+    GRANITE_COLOUR_SLUGS.includes(body.colour)
+  ) {
+    patch.graniteColour = body.colour;
+  }
+  if (body.material === "landscape" && !body.landscapeColour) patch.landscapeColour = "landscape";
 
   if (body.availability !== undefined) {
     patch.availabilityRank = AVAILABILITY_RANK[body.availability] ?? 2;
@@ -230,9 +247,17 @@ const stoneService = {
     if (byLook.items.length >= limit) return byLook.items;
 
     const seen = new Set(byLook.items.map((s) => String(s._id)));
-    const byColour = stone.colour
+    // Granite beside granite: Marble Colour leaves granite out (see
+    // stone.repository.js), so a granite lot matches on its own list.
+    const sameColour =
+      stone.material === "granite"
+        ? stone.graniteColour && { graniteColour: [stone.graniteColour] }
+        : stone.material === "landscape"
+          ? stone.landscapeColour && { landscapeColour: [stone.landscapeColour] }
+          : stone.colour && { colour: [stone.colour] };
+    const byColour = sameColour
       ? await stoneRepository.findMany({
-          colour: [stone.colour],
+          ...sameColour,
           excludeId: stone._id,
           publishedOnly: true,
           limit,
