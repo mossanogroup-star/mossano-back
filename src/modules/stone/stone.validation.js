@@ -10,6 +10,7 @@ import {
   LANDSCAPE_COLOUR_SLUGS,
   FINISH_SLUGS,
   PLACEMENT_SLUGS,
+  thicknessRange,
 } from "./stone.constants.js";
 import { COUNTRY_CODES } from "../../config/countries.generated.js";
 import { SORTS } from "./stone.repository.js";
@@ -62,7 +63,19 @@ const stoneBodyCreateSchema = z.object({
   originCountry: z.enum(COUNTRY_CODES).optional(),
   origin: optionalText(80),
   finish: z.enum(FINISH_SLUGS).optional(),
-  thicknessMm: z.number().min(0).max(300).optional(),
+  // "18" or "17-100", in mm. A number is still accepted from older clients.
+  thicknessMm: z
+    .union([z.number(), z.string()])
+    .transform((v) =>
+      String(v)
+        .trim()
+        .replace(/\s*[-–]\s*/, "-"),
+    )
+    .refine((v) => {
+      const range = thicknessRange(v);
+      return range !== null && range[1] <= 300;
+    }, "Enter a thickness like 18 or 17-100")
+    .optional(),
   placements: z.array(z.enum(PLACEMENT_SLUGS)).max(PLACEMENT_SLUGS.length).optional(),
 
   slabLengthIn: z.number().min(0).max(400).optional(),

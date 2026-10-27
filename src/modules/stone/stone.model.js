@@ -86,7 +86,11 @@ const StoneSchema = new mongoose.Schema(
     originCountry: { type: String, enum: COUNTRY_CODES, index: true },
     origin: { type: String, trim: true, index: true },
     finish: { type: String, enum: FINISH_SLUGS },
-    thicknessMm: { type: Number, min: 0 },
+    /**
+     * In mm: one figure ("18") or a range ("17-100") — client request, 27 Oct
+     * 2026. Lots saved before then hold a number, which reads the same.
+     */
+    thicknessMm: { type: String, trim: true },
     /** Client request (24 Oct 2026) — interior, exterior or both. */
     placements: { type: [String], enum: PLACEMENT_SLUGS, default: [] },
 

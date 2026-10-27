@@ -131,7 +131,8 @@ function toPublicStoneDto(doc) {
     originCountryLabel: countryLabel(doc.originCountry),
     finish: doc.finish ?? null,
     finishLabel: labelOf(FINISHES, doc.finish),
-    thicknessMm: doc.thicknessMm ?? null,
+    // A string since 27 Oct 2026; older lots still hold a number.
+    thicknessMm: doc.thicknessMm == null ? null : String(doc.thicknessMm),
     /** Shown in the stone page's Application row, after the categories. */
     placements: doc.placements ?? [],
     placementLabels: (doc.placements ?? []).map((p) => labelOf(PLACEMENTS, p)).filter(Boolean),

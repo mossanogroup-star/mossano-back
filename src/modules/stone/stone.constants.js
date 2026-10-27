@@ -184,7 +184,21 @@ const GRANITE_SPEC = {
     "cnc",
   ],
   thicknessMm: { min: 17, max: 100 },
+  /** Client request (27 Oct 2026) — what a granite lot's thickness reads. */
+  thickness: "17-100",
 };
+
+/**
+ * Client request (27 Oct 2026) — thickness is a single figure ("18") or a
+ * range ("17-100"), in mm. Returns [low, high], or null when it is neither.
+ */
+function thicknessRange(value) {
+  const match = /^(\d+(?:\.\d+)?)(?:\s*[-–]\s*(\d+(?:\.\d+)?))?$/.exec(String(value).trim());
+  if (!match) return null;
+  const low = Number(match[1]);
+  const high = match[2] === undefined ? low : Number(match[2]);
+  return low <= high ? [low, high] : null;
+}
 
 const slugsOf = (list) => list.map((x) => x.slug);
 
@@ -228,5 +242,6 @@ export {
   LANDSCAPE_COLOUR_SLUGS,
   FINISH_SLUGS,
   PLACEMENT_SLUGS,
+  thicknessRange,
   labelOf,
 };

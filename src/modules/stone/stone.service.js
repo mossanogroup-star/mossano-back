@@ -1,7 +1,7 @@
 import { stoneRepository } from "./stone.repository.js";
 import { mediaRepository } from "../media/media.repository.js";
 import { toMediaDto } from "../media/media.dto.js";
-import { AVAILABILITY_RANK, GRANITE_SPEC } from "./stone.constants.js";
+import { AVAILABILITY_RANK, GRANITE_SPEC, thicknessRange } from "./stone.constants.js";
 import { uniqueSlug } from "../../utils/slugify.js";
 import { nextSequence, ensureCounterAtLeast } from "../../utils/counter.js";
 import { AppError } from "../../utils/AppError.js";
@@ -84,11 +84,15 @@ function buildPatch(body, { touchVerified = true } = {}) {
   return patch;
 }
 
-/** Client request (24 Oct 2026) — granite is offered at 17–100 mm only. */
+/**
+ * Client request (24 Oct 2026) — granite is offered at 17–100 mm only. Since
+ * 27 Oct the thickness may be a range, and both ends must sit inside it.
+ */
 function assertGraniteThickness(material, thicknessMm) {
-  if (material !== "granite" || thicknessMm == null) return;
+  if (material !== "granite" || thicknessMm == null || thicknessMm === "") return;
   const { min, max } = GRANITE_SPEC.thicknessMm;
-  if (thicknessMm < min || thicknessMm > max) {
+  const range = thicknessRange(thicknessMm);
+  if (!range || range[0] < min || range[1] > max) {
     throw new AppError(`Granite thickness must be ${min}–${max} mm`, 400);
   }
 }
