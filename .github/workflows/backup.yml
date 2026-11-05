@@ -1,0 +1,27 @@
+name: Database backup to Google Drive
+
+on:
+  schedule:
+    # 02:00 IST every day (cron runs in UTC; IST is UTC+5:30).
+    - cron: "30 20 * * *"
+  workflow_dispatch: {}
+
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+          cache: npm
+      - run: npm ci --omit=dev
+      - run: node scripts/backupToDrive.js
+        env:
+          MONGODB_URI: ${{ secrets.MONGODB_URI }}
+          GDRIVE_CLIENT_ID: ${{ secrets.GDRIVE_CLIENT_ID }}
+          GDRIVE_CLIENT_SECRET: ${{ secrets.GDRIVE_CLIENT_SECRET }}
+          GDRIVE_REFRESH_TOKEN: ${{ secrets.GDRIVE_REFRESH_TOKEN }}
+          GDRIVE_FOLDER_ID: ${{ secrets.GDRIVE_FOLDER_ID }}
+          BACKUP_KEEP: "30"
