@@ -44,6 +44,9 @@ const sourcingBriefSchema = z.object({
  * The exception is "reference_image", the floating uploader: Phase-3 feedback,
  * the client wanted it to be the photograph and a mobile number, nothing else.
  * It needs an image and a phone, and may arrive without a name or email.
+ *
+ * "visitor", the popup shown once a visitor opens a third image, is the other:
+ * email and phone, no name.
  */
 const enquirySubmitBodySchema = z
   .object({
@@ -66,9 +69,18 @@ const enquirySubmitBodySchema = z
 
     sourcePath: optionalText(300),
   })
-  .refine((v) => v.type === "reference_image" || Boolean(v.name), {
+  .refine((v) => v.type === "reference_image" || v.type === "visitor" || Boolean(v.name), {
     message: "Please give your name",
     path: ["name"],
+  })
+  // The image-view popup asks for email and phone, no name.
+  .refine((v) => v.type !== "visitor" || Boolean(v.email), {
+    message: "Add your email address",
+    path: ["email"],
+  })
+  .refine((v) => v.type !== "visitor" || Boolean(v.phone), {
+    message: "Add your phone number",
+    path: ["phone"],
   })
   .refine((v) => v.type === "reference_image" || Boolean(v.email || v.phone), {
     message: "Add an email address or a phone number so MOSSANO can reply",
