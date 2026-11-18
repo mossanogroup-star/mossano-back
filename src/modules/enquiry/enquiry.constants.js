@@ -17,6 +17,7 @@ const ENQUIRY_TYPES = [
   "selection", // raised from inside a private selection (Website §9)
   "chatbot", // the scripted assistant (Website Notes, second drop)
   "reference_image", // the "Upload your reference image" launcher on every page (Phase-3)
+  "visitor", // name + phone asked once a visitor has opened two images
 ];
 
 const ENQUIRY_TYPE_LABELS = {
@@ -30,6 +31,7 @@ const ENQUIRY_TYPE_LABELS = {
   selection: "From a private selection",
   chatbot: "Chatbot",
   reference_image: "Reference image",
+  visitor: "Website visitor",
 };
 
 /**
