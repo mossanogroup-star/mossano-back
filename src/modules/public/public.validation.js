@@ -51,7 +51,13 @@ const publicFavouritesPdfSchema = makeSchema({
   }),
 });
 
+/** "Already shared your details?" — one field, email or phone. */
+const publicVisitorRecogniseSchema = makeSchema({
+  body: z.object({ contact: z.string().trim().min(3).max(160) }),
+});
+
 export {
+  publicVisitorRecogniseSchema,
   publicShopSchema,
   publicStoneSchema,
   publicEditSchema,

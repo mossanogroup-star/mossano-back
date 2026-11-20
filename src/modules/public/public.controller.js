@@ -37,6 +37,7 @@ import {
 } from "../stone/stone.constants.js";
 import { whatsappLink, sourcingMessage } from "../../utils/whatsapp.js";
 import { settingsService } from "../settings/settings.service.js";
+import { visitorService } from "../visitor/visitor.service.js";
 
 /**
  * Everything the storefront needs that never changes per request: brand facts,
@@ -291,11 +292,38 @@ const submitEnquiry = asyncHandler(async (req, res) => {
     sourcePath: req.validated.body.sourcePath || req.get("referer"),
     userAgent: req.get("user-agent"),
   });
+  // Anyone who left an email and a phone is not shown the image-view popup
+  // again — on this network, or wherever they give that email or phone.
+  await visitorService.remember({
+    ip: req.ip,
+    email: req.validated.body.email,
+    phone: req.validated.body.phone,
+  });
   return sendSuccess(res, {
     statusCode: 201,
     message: "Thank you — MOSSANO will be in touch.",
     data: toSubmissionReceiptDto(enquiry),
   });
+});
+
+/**
+ * Client request (20 Nov 2026) — the image-view popup is asked once per
+ * person, not once per browser. These two answer it per network and per
+ * contact; the storefront's own localStorage flag still answers it first.
+ * Never cached: the answer is about the caller.
+ */
+const visitorStatus = asyncHandler(async (req, res) => {
+  res.setHeader("Cache-Control", "private, no-store");
+  return sendSuccess(res, { data: { known: await visitorService.isKnownIp(req.ip) } });
+});
+
+const visitorRecognise = asyncHandler(async (req, res) => {
+  res.setHeader("Cache-Control", "private, no-store");
+  const known = await visitorService.recognise({
+    ip: req.ip,
+    contact: req.validated.body.contact,
+  });
+  return sendSuccess(res, { data: { known } });
 });
 
 const selection = asyncHandler(async (req, res) => {
@@ -343,6 +371,8 @@ const publicController = {
   favouritesPdf,
   uploadReferenceImages,
   submitEnquiry,
+  visitorStatus,
+  visitorRecognise,
   selection,
   selectionPdf,
 };

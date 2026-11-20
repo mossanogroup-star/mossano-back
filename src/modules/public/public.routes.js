@@ -5,7 +5,11 @@
  */
 import { Router } from "express";
 import { validateRequest } from "../../middlewares/validateRequest.js";
-import { publicFormRateLimit, publicUploadRateLimit } from "../../middlewares/rateLimit.js";
+import {
+  publicFormRateLimit,
+  publicUploadRateLimit,
+  visitorRecogniseRateLimit,
+} from "../../middlewares/rateLimit.js";
 import { uploadReferenceImages } from "../../middlewares/upload.js";
 import { publicController } from "./public.controller.js";
 import {
@@ -18,6 +22,7 @@ import {
   publicSelectionSchema,
   publicFavouritesSchema,
   publicFavouritesPdfSchema,
+  publicVisitorRecogniseSchema,
 } from "./public.validation.js";
 import { enquirySubmitSchema } from "../enquiry/enquiry.validation.js";
 
@@ -80,6 +85,15 @@ router.post(
   publicUploadRateLimit,
   uploadReferenceImages,
   publicController.uploadReferenceImages,
+);
+
+// Client request (20 Nov 2026) — the image-view popup, asked once per person.
+router.get("/visitor", publicController.visitorStatus);
+router.post(
+  "/visitor/recognise",
+  visitorRecogniseRateLimit,
+  validateRequest(publicVisitorRecogniseSchema),
+  publicController.visitorRecognise,
 );
 
 // Private selections, addressed by their unguessable token.

@@ -76,4 +76,20 @@ const publicUploadRateLimit = createRateLimit({
   message: "Too many uploads in a short time. Please try again in a few minutes.",
 });
 
-export { createRateLimit, loginRateLimit, publicFormRateLimit, publicUploadRateLimit };
+/**
+ * "Already shared your details?" — answers whether an email or phone has
+ * enquired, so it is kept tight enough that the inbox cannot be probed.
+ */
+const visitorRecogniseRateLimit = createRateLimit({
+  windowMs: 10 * 60 * 1000,
+  max: 8,
+  message: "Too many tries in a short time. Please try again in a few minutes.",
+});
+
+export {
+  createRateLimit,
+  loginRateLimit,
+  publicFormRateLimit,
+  publicUploadRateLimit,
+  visitorRecogniseRateLimit,
+};
