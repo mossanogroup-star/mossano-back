@@ -124,6 +124,8 @@ const stoneFilters = {
   featured: booleanQuerySchema,
   minAreaSqFt: intQuerySchema(0),
   sort: z.enum(Object.keys(SORTS)).optional(),
+  // The rail's picks as `param:value`, most recent first — see pickBranches.
+  priority: csvQuerySchema,
 };
 
 const stoneListSchema = makeSchema({ query: buildListQuery(stoneFilters) });

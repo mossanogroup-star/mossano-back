@@ -1,5 +1,11 @@
 import { StoneModel } from "./stone.model.js";
-import { escapeRegex, runPagedQuery, softDeleteById } from "../../utils/repositoryHelpers.js";
+import {
+  escapeRegex,
+  runPagedQuery,
+  softDeleteById,
+  DEFAULT_LIMIT,
+  MAX_LIMIT,
+} from "../../utils/repositoryHelpers.js";
 
 /**
  * Client request (27 Oct 2026) — "when we add granite it goes to marble".
@@ -70,15 +76,25 @@ function buildFilter({
   if (publishedOnly) filter.isPublished = true;
   if (featured) filter.isFeatured = true;
 
+  const and = [];
+
   // Array filters accept one value or many: ?look=dramatic,dark-moody
   if (material?.length) filter.material = { $in: material };
+
+  // Marble Colour, Granite and Landscape are one colour list split by
+  // material, so they widen each other rather than narrow: White marble plus
+  // Black granite is "show me both", not "a stone that is both" — which, the
+  // three being exclusive by material, used to match nothing at all.
+  const colourFamilies = [];
   if (colour?.length) {
-    filter.colour = { $in: colour };
-    filter.material = { ...(filter.material ?? {}), $nin: OWN_COLOUR_LIST };
+    colourFamilies.push({ colour: { $in: colour }, material: { $nin: OWN_COLOUR_LIST } });
   }
+  if (graniteColour?.length) colourFamilies.push({ graniteColour: { $in: graniteColour } });
+  if (landscapeColour?.length) colourFamilies.push({ landscapeColour: { $in: landscapeColour } });
+  if (colourFamilies.length === 1) and.push(colourFamilies[0]);
+  else if (colourFamilies.length > 1) and.push({ $or: colourFamilies });
+
   if (whiteSubcategory?.length) filter.whiteSubcategory = { $in: whiteSubcategory };
-  if (graniteColour?.length) filter.graniteColour = { $in: graniteColour };
-  if (landscapeColour?.length) filter.landscapeColour = { $in: landscapeColour };
   if (look?.length) filter.looks = { $in: look };
   if (application?.length) filter.applications = { $in: application };
   if (availability?.length) filter.availability = { $in: availability };
@@ -94,17 +110,101 @@ function buildFilter({
     // A regex $or rather than $text: customers search partial codes ("MM-02")
     // and partial lot numbers, and $text only matches whole tokens.
     const rx = new RegExp(escapeRegex(search.trim()), "i");
-    filter.$or = [{ name: rx }, { mossanoCode: rx }, { lotNumber: rx }, { origin: rx }];
+    and.push({ $or: [{ name: rx }, { mossanoCode: rx }, { lotNumber: rx }, { origin: rx }] });
   }
 
+  if (and.length) filter.$and = and;
   return filter;
 }
 
+/**
+ * Rail param → how a stone is tested against one of its values, as an
+ * aggregation expression. Mirrors buildFilter.
+ */
+const PICK_MATCHERS = {
+  material: (v) => ({ $eq: ["$material", v] }),
+  colour: (v) => ({
+    $and: [{ $eq: ["$colour", v] }, { $not: [{ $in: ["$material", OWN_COLOUR_LIST] }] }],
+  }),
+  whiteSubcategory: (v) => ({ $eq: ["$whiteSubcategory", v] }),
+  graniteColour: (v) => ({ $eq: ["$graniteColour", v] }),
+  landscapeColour: (v) => ({ $eq: ["$landscapeColour", v] }),
+  originCountry: (v) => ({ $eq: ["$originCountry", v] }),
+  look: (v) => ({ $in: [v, { $ifNull: ["$looks", []] }] }),
+  application: (v) => ({ $in: [v, { $ifNull: ["$applications", []] }] }),
+  availability: (v) => ({ $eq: ["$availability", v] }),
+  finish: (v) => ({ $eq: ["$finish", v] }),
+};
+
+/**
+ * Client request (20 Nov 2026) — the option ticked last shows its stones
+ * first. `priority` is the rail's picks as `param:value`, most recent first;
+ * only picks that are actually among the active filters count, so a stale or
+ * hand-edited link degrades to the plain sort rather than to nonsense.
+ */
+function pickBranches(priority, filters) {
+  const branches = [];
+  for (const entry of priority ?? []) {
+    const at = entry.indexOf(":");
+    if (at < 1) continue;
+    const param = entry.slice(0, at);
+    const value = entry.slice(at + 1);
+    if (!PICK_MATCHERS[param] || !filters[param]?.includes(value)) continue;
+    branches.push({ case: PICK_MATCHERS[param](value), then: branches.length });
+    if (branches.length >= 40) break;
+  }
+  return branches;
+}
+
+async function runRankedQuery({ filter, sort, branches, page, limit }) {
+  const safePage = Math.max(1, Number(page) || 1);
+  const safeLimit = Math.min(MAX_LIMIT, Math.max(1, Number(limit) || DEFAULT_LIMIT));
+  const skip = (safePage - 1) * safeLimit;
+
+  // Aggregation skips Mongoose's casting, so cast the filter through a query
+  // first — ids in particular have to arrive as ObjectIds.
+  const match = StoneModel.find(filter).cast(StoneModel);
+
+  const [docs, total] = await Promise.all([
+    StoneModel.aggregate([
+      { $match: match },
+      { $addFields: { _pickRank: { $switch: { branches, default: branches.length } } } },
+      { $sort: { _pickRank: 1, ...sort, _id: 1 } },
+      { $skip: skip },
+      { $limit: safeLimit },
+      { $unset: "_pickRank" },
+    ]),
+    StoneModel.countDocuments(filter),
+  ]);
+  const items = await StoneModel.populate(docs, POPULATE);
+
+  return {
+    items,
+    page: safePage,
+    limit: safeLimit,
+    total,
+    totalPages: Math.max(1, Math.ceil(total / safeLimit)),
+    hasMore: skip + items.length < total,
+  };
+}
+
 const stoneRepository = {
-  findMany({ page, limit, sort, ...rest }) {
+  findMany({ page, limit, sort, priority, ...rest }) {
+    const filter = buildFilter(rest);
+    const branches = pickBranches(priority, rest);
+    // One pick has nothing to rank against — every result matches it.
+    if (branches.length > 1) {
+      return runRankedQuery({
+        filter,
+        sort: SORTS[sort] || SORTS.default,
+        branches,
+        page,
+        limit,
+      });
+    }
     return runPagedQuery({
       model: StoneModel,
-      filter: buildFilter(rest),
+      filter,
       sort: SORTS[sort] || SORTS.default,
       page,
       limit,
